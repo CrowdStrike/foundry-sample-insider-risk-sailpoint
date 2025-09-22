@@ -2,8 +2,8 @@
 
 When you create a new repo with this template, you still need to do a few things before making it public.
 
-1. Find and replace `$REPOSITORY_NAME` with the name of the new repository in all files.
-2. Find and replace `$SAMPLE_NAME` with the name in `manifest.yml`. 
+1. Find and replace `foundry-sample-insider-risk-sailpoint` with the name of the new repository in all files.
+2. Find and replace `Insider Risk - SailPoint Leavers` with the name in `manifest.yml`. 
 3. Update the following sections in the main `README.md`:
     * Description
     * Prerequisites
@@ -55,7 +55,7 @@ When you create a new repo with this template, you still need to do a few things
     > - [`pylint.yml`](https://github.com/CrowdStrike/foundry-sample-functions-python/blob/main/.github/workflows/pylint.yml) → `.github/workflows/`
     > - [`.pylintrc`](https://github.com/CrowdStrike/foundry-sample-functions-python/blob/main/.pylintrc) → project root
 
-7. In the GitHub UI, update the **About** section to be `$SAMPLE_NAME sample Foundry app`. Add `falcon-foundry` as a topic and uncheck Releases, Packages, and Deployments.
+7. In the GitHub UI, update the **About** section to be `Insider Risk - SailPoint Leavers sample Foundry app`. Add `falcon-foundry` as a topic and uncheck Releases, Packages, and Deployments.
 8. Go to **Settings** and uncheck the **Wikis** and **Projects** features.
 9. In **Collaborators and teams**, add the **CrowdStrike/foundry** and **CrowdStrike/solution-architects** teams with **Role: admin**. Remove your personal account if you're a member of the foundry team.
 10. In **Branches**, add a **classic** branch protection rule:
