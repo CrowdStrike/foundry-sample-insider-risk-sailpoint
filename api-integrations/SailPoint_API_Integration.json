@@ -1,0 +1,201 @@
+{
+  "components": {
+    "securitySchemes": {
+      "oauth2": {
+        "flows": {
+          "clientCredentials": {
+            "scopes": {},
+            "tokenUrl": "{host}/oauth/token"
+          }
+        },
+        "type": "oauth2",
+        "x-cs-client-id-label": "clientId",
+        "x-cs-client-secret-label": "clientSecret"
+      }
+    }
+  },
+  "info": {
+    "contact": {
+      "email": "shalabh.sharma@crowdstrike.com"
+    },
+    "description": "SailPoint API Integration",
+    "title": "SailPoint API Integration",
+    "version": ""
+  },
+  "openapi": "3.0.3",
+  "paths": {
+    "/search": {
+      "post": {
+        "description": "Get Sailpoint leavers data",
+        "operationId": "Get Sailpoint leavers data",
+        "parameters": [
+          {
+            "in": "query",
+            "name": "count",
+            "schema": {
+              "title": "count",
+              "type": "boolean"
+            }
+          },
+          {
+            "in": "query",
+            "name": "limit",
+            "schema": {
+              "title": "limit",
+              "type": "integer"
+            }
+          },
+          {
+            "in": "query",
+            "name": "offset",
+            "schema": {
+              "title": "offset",
+              "type": "integer"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$schema": "https://json-schema.org/draft-07/schema",
+                "description": "This generated schema may need tweaking. In particular format fields are attempts at matching workflow field types but may not be correct.",
+                "properties": {
+                  "includeNested": {
+                    "title": "IncludeNested",
+                    "type": "boolean"
+                  },
+                  "indices": {
+                    "items": {
+                      "title": "Indices",
+                      "type": "string"
+                    },
+                    "type": "array"
+                  },
+                  "query": {
+                    "properties": {
+                      "query": {
+                        "title": "Query",
+                        "type": "string"
+                      }
+                    },
+                    "title": "Query",
+                    "type": "object"
+                  },
+                  "queryResultFilter": {
+                    "properties": {
+                      "includes": {
+                        "items": {
+                          "title": "Includes",
+                          "type": "string"
+                        },
+                        "type": "array"
+                      }
+                    },
+                    "title": "QueryResultFilter",
+                    "type": "object"
+                  }
+                },
+                "title": "Json",
+                "type": "object"
+              }
+            }
+          }
+        },
+        "responses": {
+          "2XX": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "description": "This generated schema may need tweaking. In particular format fields are attempts at matching workflow field types but may not be correct.",
+                  "items": {
+                    "properties": {
+                      "_type": {
+                        "title": " type",
+                        "type": "string"
+                      },
+                      "_version": {
+                        "title": " version",
+                        "type": "string"
+                      },
+                      "attributes": {
+                        "properties": {
+                          "displayName": {
+                            "title": "DisplayName",
+                            "type": "string"
+                          },
+                          "endDate": {
+                            "title": "EndDate",
+                            "type": "string"
+                          }
+                        },
+                        "required": [
+                          "endDate",
+                          "displayName"
+                        ],
+                        "title": "Attributes",
+                        "type": "object"
+                      },
+                      "email": {
+                        "format": "email",
+                        "title": "Email",
+                        "type": "string"
+                      },
+                      "employeeNumber": {
+                        "title": "EmployeeNumber",
+                        "type": "string"
+                      },
+                      "name": {
+                        "title": "Name",
+                        "type": "string"
+                      },
+                      "type": {
+                        "title": "Type",
+                        "type": "string"
+                      }
+                    },
+                    "required": [
+                      "name",
+                      "attributes",
+                      "email",
+                      "employeeNumber",
+                      "type"
+                    ],
+                    "title": "Body",
+                    "type": "object"
+                  },
+                  "type": "array"
+                }
+              }
+            }
+          }
+        },
+        "x-cs-operation-config": {
+          "workflow": {
+            "description": "Get Sailpoint leavers data",
+            "expose_response_codes": true,
+            "expose_to_workflow": true,
+            "name": "Get Sailpoint leavers data",
+            "system": false
+          }
+        }
+      }
+    }
+  },
+  "security": [
+    {
+      "oauth2": []
+    }
+  ],
+  "servers": [
+    {
+      "url": "{host}/v3",
+      "variables": {
+        "host": {
+          "description": "the \"host\" variable is replaced with a dynamic value at execution time"
+        }
+      }
+    }
+  ],
+  "x-cs-multi-instance": true
+}

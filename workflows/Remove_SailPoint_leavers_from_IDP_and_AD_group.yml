@@ -1,0 +1,155 @@
+name: Remove SailPoint leavers from IDP and AD group
+description: Remove SailPoint leavers from IDP watchlist and AD group
+parameters:
+    actions:
+        configuration:
+            ActiveDirectoryRemoveFromGroup:
+                properties:
+                    group_guid:
+                        required: true
+            ActiveDirectoryRemoveFromGroup2:
+                properties:
+                    group_guid:
+                        required: true
+provision_on_install: true
+trigger:
+    next:
+        - GetSailpointLeaversData
+    event: Schedule
+    schedule:
+        time_cycle: 0 5 */1 * *
+        start_date: ""
+        end_date: ""
+        tz: Etc/UTC
+        skip_concurrent: false
+actions:
+    GetSailpointLeaversData:
+        next:
+            - Loop
+        id: api_integrations.SailPoint API Integration.Get Sailpoint leavers data
+        properties:
+            json:
+                includeNested: false
+                indices:
+                    - identities
+                query:
+                    query: cloudLifecycleState=\"ACTIVE\" AND attributes.endDate:[now-30d]
+                queryResultFilter:
+                    includes:
+                        - name
+                        - email
+                        - employeeNumber
+                        - attributes.endDate
+                        - attributes.displayName
+                        - cloudLifecycleState
+            params:
+                query:
+                    count: true
+        version_constraint: ~0
+loops:
+    Loop:
+        display: For each Body; Concurrently
+        for:
+            input: GetSailpointLeaversData.API_Integration.Custom_SailPoint_API_Integration.Get_Sailpoint_leavers_data.body
+            continue_on_partial_execution: false
+            sequential: false
+        trigger:
+            next:
+                - GetUserIdentityContext
+        actions:
+            ActiveDirectoryRemoveFromGroup:
+                id: 8ecb53650a273d22032941d47320acb4
+                properties:
+                    domain: ${GetUserIdentityContext.Domain}
+                    object_guid: ${GetUserIdentityContext.EntityGUID}
+                version_constraint: ~1
+            GetAssociatedLinkedAccounts:
+                next:
+                    - Loop1
+                id: functions.identity-context.Get associated linked accounts
+                properties:
+                    EntityId: ${GetUserIdentityContext.EntityGUID}
+                version_constraint: ~0
+            GetUserIdentityContext:
+                next:
+                    - user_ad_email_exists
+                id: 19c7e2af0a24f468be7797fe180c8329
+                properties:
+                    continue_if_entity_not_found: true
+                    email: ${GetSailpointLeaversData.API_Integration.Custom_SailPoint_API_Integration.Get_Sailpoint_leavers_data.body.#.email}
+                version_constraint: ~1
+            RemoveUserFromWatchlist:
+                id: 844dcff30c42cba24e501be8a6cf2577
+                properties:
+                    note: Removed from the watchlist as a Departing employee
+                    user_id: ${GetUserIdentityContext.EntitySid}
+            WriteToLogRepo:
+                id: 0ec68880256f6192b9abef766d31fb04
+                properties:
+                    custom_json:
+                        employeeEmail: ${data['GetSailpointLeaversData.API_Integration.Custom_SailPoint_API_Integration.Get_Sailpoint_leavers_data.body.#.email']}
+                        employeeID: ${data['GetSailpointLeaversData.API_Integration.Custom_SailPoint_API_Integration.Get_Sailpoint_leavers_data.body.#.employeeNumber']}
+                        warn: Employee with emaiId '${data['GetSailpointLeaversData.API_Integration.Custom_SailPoint_API_Integration.Get_Sailpoint_leavers_data.body.#.email']}' not exists in Identity Protection
+                    foundry_app_id: a8f3320be5d4499ea431ce3b3594cc18
+                version_constraint: ~1
+            WriteToLogRepo2:
+                id: 0ec68880256f6192b9abef766d31fb04
+                properties:
+                    custom_json:
+                        employeeEmail: ${GetUserIdentityContext.Email}
+                        employeeGUID: ${GetUserIdentityContext.EntityGUID}
+                        employeeName: ${GetUserIdentityContext.EntityName}
+                        warn: Not removing user from watchlist and AD group as employee account is 'cloud_only'
+                    foundry_app_id: a8f3320be5d4499ea431ce3b3594cc18
+                version_constraint: ~1
+        conditions:
+            user_ad_email_exists:
+                next:
+                    - user_object_sid_exists_user_entra_object_id_does_not_exist
+                expression: GetUserIdentityContext.Email:!null
+                display:
+                    - User AD email exists
+                else:
+                    - WriteToLogRepo
+            user_object_sid_exists_user_entra_object_id_does_not_exist:
+                next:
+                    - ActiveDirectoryRemoveFromGroup
+                    - RemoveUserFromWatchlist
+                    - GetAssociatedLinkedAccounts
+                expression: GetUserIdentityContext.EntitySid:!null+GetUserIdentityContext.UserEntraObjectID:null
+                display:
+                    - User object SID exists
+                    - User Entra Object ID does not exist
+                else:
+                    - WriteToLogRepo2
+        loops:
+            Loop1:
+                display: For each Linked accounts; Concurrently
+                for:
+                    input: GetAssociatedLinkedAccounts.FaaS.identity-context.Getassociatedlinkedaccounts.linked_entities
+                    continue_on_partial_execution: false
+                    sequential: false
+                trigger:
+                    next:
+                        - user_object_sid_instance_exists_ad_domain_instance_exists_user_object_guid_instance_exists
+                actions:
+                    ActiveDirectoryRemoveFromGroup2:
+                        id: 8ecb53650a273d22032941d47320acb4
+                        properties:
+                            domain: ${GetAssociatedLinkedAccounts.FaaS.identity-context.Getassociatedlinkedaccounts.linked_entities.#.Domain}
+                            object_guid: ${GetAssociatedLinkedAccounts.FaaS.identity-context.Getassociatedlinkedaccounts.linked_entities.#.EntityId}
+                        version_constraint: ~1
+                    RemoveUserFromWatchlist2:
+                        id: 844dcff30c42cba24e501be8a6cf2577
+                        properties:
+                            user_id: ${GetAssociatedLinkedAccounts.FaaS.identity-context.Getassociatedlinkedaccounts.linked_entities.#.EntitySid}
+                conditions:
+                    user_object_sid_instance_exists_ad_domain_instance_exists_user_object_guid_instance_exists:
+                        next:
+                            - ActiveDirectoryRemoveFromGroup2
+                            - RemoveUserFromWatchlist2
+                        expression: GetAssociatedLinkedAccounts.FaaS.identity-context.Getassociatedlinkedaccounts.linked_entities.#.EntitySid:!null+GetAssociatedLinkedAccounts.FaaS.identity-context.Getassociatedlinkedaccounts.linked_entities.#.Domain:!null+GetAssociatedLinkedAccounts.FaaS.identity-context.Getassociatedlinkedaccounts.linked_entities.#.EntityId:!null
+                        display:
+                            - User object SID instance exists
+                            - AD Domain instance exists
+                            - User object GUID instance exists

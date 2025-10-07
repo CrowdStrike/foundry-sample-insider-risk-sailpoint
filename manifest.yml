@@ -1,0 +1,87 @@
+app_id: a8f3320be5d4499ea431ce3b3594cc18
+name: Insider Risk   Sailpoint Leavers
+description: Enhanced monitoring for employees leaving an organization who may pose a high risk of insider threat to sensitive data - Employee data is synced with Workday
+logo: app_docs/images/logo.png
+vendor: ""
+vendor_products: []
+use_case: Data security
+manifest_version: "2023-05-09"
+ignored: []
+ui:
+    homepage: ""
+    extensions: []
+    pages: {}
+    dashboards: {}
+    navigation: {}
+api_integrations:
+    - id: 362ffc5703b2481299ede2e03fd71c29
+      name: SailPoint API Integration
+      description: ""
+      path: api-integrations/SailPoint_API_Integration.json
+rtr_scripts: []
+collections: []
+auth:
+    scopes:
+        - identity-graphql:write
+        - identity-assessment:read
+        - identity-entities:read
+    permissions: {}
+    roles: []
+functions:
+    - id: 46ca8c9fc40e464395ad1823b81e5dc9
+      name: identity-context
+      config: null
+      description: Provide identity related context
+      path: functions/identity-context
+      environment_variables: {}
+      handlers:
+        - name: Get associated linked accounts
+          description: Retrieve linked accounts associated with entityId
+          method: GET
+          api_path: /linked-accounts
+          payload_type: ""
+          request_schema: schemas/linked_accounts_input_schema.json
+          response_schema: schemas/linked_accounts_output_schema.json
+          workflow_integration:
+            id: a3e40701328646b090cf0e6370b36815
+            disruptive: false
+            system_action: true
+            tags: []
+          permissions: []
+      language: python
+workflows:
+    - id: 1b50cc08458946beb57f0e56b08d5dde
+      name: Add SailPoint leavers data to IDP and AD group
+      path: workflows/Add_leavers_data_to_IDP_watchlist_and_AD_group.yml
+      permissions: []
+    - id: 13bd45b0b0ae43d09184e07d1202d7e3
+      name: Remove SailPoint leavers from IDP and AD group
+      path: workflows/Remove_SailPoint_leavers_from_IDP_and_AD_group.yml
+      permissions: []
+parsers: []
+logscale:
+    saved_searches:
+        - id: a641643f7bba409396161f0484b60802
+          name: Query departing employees
+          description: ""
+          repo_or_view: foundry:applicationview
+          query_path: saved-searches/Query_departing_employees/query.txt
+          query_params:
+            WorkflowRootExecutionID: '*'
+          input_schema_path: saved-searches/Query_departing_employees/input-schema.json
+          output_schema_path: saved-searches/Query_departing_employees/output-schema.json
+          earliest: 15m
+          latest: now
+          workflow_integration:
+            tags:
+                - Insider Threat
+            system_action: true
+          include_test_data: false
+lookup_files: []
+docs:
+    id: 852ff2a81ba6413e87e381cfdcb0d235
+    path: app_docs
+    entrypoint: README.md
+    links:
+        - images/workdayCreds.png
+        - images/workflowConfig.png
