@@ -1,4 +1,4 @@
-# Foundry Sample Insider Threat
+# Foundry Sample Insider Risk - SailPoint
 
 Organizations face critical security challenges when employees leave and have elevated access to sensitive data. 
 The sample Foundry Insider Risk SailPoint helps automate the process of monitoring leaving employees.
