@@ -33,7 +33,7 @@ actions:
                 indices:
                     - identities
                 query:
-                    query: cloudLifecycleState=\"ACTIVE\" AND attributes.endDate:[now-30d]
+                    query: attributes.endDate:[now-60d TO now-30d]
                 queryResultFilter:
                     includes:
                         - name
@@ -51,7 +51,7 @@ loops:
         display: For each Body; Concurrently
         for:
             input: GetSailpointLeaversData.API_Integration.Custom_SailPoint_API_Integration.Get_Sailpoint_leavers_data.body
-            continue_on_partial_execution: false
+            continue_on_partial_execution: true
             sequential: false
         trigger:
             next:
@@ -90,7 +90,7 @@ loops:
                         employeeEmail: ${data['GetSailpointLeaversData.API_Integration.Custom_SailPoint_API_Integration.Get_Sailpoint_leavers_data.body.#.email']}
                         employeeID: ${data['GetSailpointLeaversData.API_Integration.Custom_SailPoint_API_Integration.Get_Sailpoint_leavers_data.body.#.employeeNumber']}
                         warn: Employee with emaiId '${data['GetSailpointLeaversData.API_Integration.Custom_SailPoint_API_Integration.Get_Sailpoint_leavers_data.body.#.email']}' not exists in Identity Protection
-                    foundry_app_id: a8f3320be5d4499ea431ce3b3594cc18
+                    foundry_app_id: ${{FOUNDRY_APP_ID}}
                 version_constraint: ~1
             WriteToLogRepo2:
                 id: 0ec68880256f6192b9abef766d31fb04
@@ -100,7 +100,7 @@ loops:
                         employeeGUID: ${GetUserIdentityContext.EntityGUID}
                         employeeName: ${GetUserIdentityContext.EntityName}
                         warn: Not removing user from watchlist and AD group as employee account is 'cloud_only'
-                    foundry_app_id: a8f3320be5d4499ea431ce3b3594cc18
+                    foundry_app_id: ${{FOUNDRY_APP_ID}}
                 version_constraint: ~1
         conditions:
             user_ad_email_exists:

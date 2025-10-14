@@ -127,6 +127,10 @@
                           "endDate": {
                             "title": "EndDate",
                             "type": "string"
+                          },
+                          "startDate": {
+                            "title": "StartDate",
+                            "type": "string"
                           }
                         },
                         "required": [

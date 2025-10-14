@@ -11,16 +11,17 @@ parameters:
                 properties:
                     group_guid:
                         required: true
-            GetSailpointLeaversData:
-                properties:
-                    params.query.limit:
-                        required: false
-                    params.query.offset:
-                        required: false
 provision_on_install: true
 trigger:
     next:
         - GetSailpointLeaversData
+    event: Schedule
+    schedule:
+        time_cycle: 0 5 */1 * *
+        start_date: ""
+        end_date: ""
+        tz: Etc/UTC
+        skip_concurrent: false
 actions:
     CIDSpecificEventQueryQueryDepartingEmployees:
         next:
@@ -77,7 +78,7 @@ actions:
                 indices:
                     - identities
                 query:
-                    query: cloudLifecycleState=\"ACTIVE\" AND attributes.endDate:[now TO now+200y]
+                    query: cloudLifecycleState=\"ACTIVE\" AND attributes.endDate:[now TO now+180d]
                 queryResultFilter:
                     includes:
                         - name
@@ -85,6 +86,7 @@ actions:
                         - email
                         - attributes.endDate
                         - attributes.displayName
+                        - attributes.startDate
             params:
                 query:
                     count: true
@@ -120,7 +122,7 @@ loops:
             - Sleep
         for:
             input: GetSailpointLeaversData.API_Integration.Custom_SailPoint_API_Integration.Get_Sailpoint_leavers_data.body
-            continue_on_partial_execution: false
+            continue_on_partial_execution: true
             sequential: false
         trigger:
             next:
@@ -148,7 +150,7 @@ loops:
                     - user_ad_email_exists
                 id: 19c7e2af0a24f468be7797fe180c8329
                 properties:
-                    continue_if_entity_not_found: false
+                    continue_if_entity_not_found: true
                     email: ${GetSailpointLeaversData.API_Integration.Custom_SailPoint_API_Integration.Get_Sailpoint_leavers_data.body.#.email}
                 version_constraint: ~1
             WriteToLogRepo:
@@ -176,9 +178,10 @@ loops:
                         - ${GetUserIdentityContext.Privileges}
                         - ${GetUserIdentityContext.RiskSeverity}
                         - ${GetSailpointLeaversData.API_Integration.Custom_SailPoint_API_Integration.Get_Sailpoint_leavers_data.body.#.attributes.endDate}
+                        - ${GetSailpointLeaversData.API_Integration.Custom_SailPoint_API_Integration.Get_Sailpoint_leavers_data.body.#.attributes.startDate}
                     custom_json:
                         type: departing_employee
-                    foundry_app_id: a8f3320be5d4499ea431ce3b3594cc18
+                    foundry_app_id: ${{FOUNDRY_APP_ID}}
                     remove_action_prefix: true
                 version_constraint: ~1
             WriteToLogRepo2:
@@ -202,7 +205,7 @@ loops:
                         employeeGUID: ${GetUserIdentityContext.EntityGUID}
                         employeeName: ${GetUserIdentityContext.EntityName}
                         warn: Employee account is 'cloud_only'
-                    foundry_app_id: a8f3320be5d4499ea431ce3b3594cc18
+                    foundry_app_id: ${{FOUNDRY_APP_ID}}
                 version_constraint: ~1
             WriteToLogRepo3:
                 id: 0ec68880256f6192b9abef766d31fb04
@@ -211,7 +214,7 @@ loops:
                         employeeEmail: ${data['GetSailpointLeaversData.API_Integration.Custom_SailPoint_API_Integration.Get_Sailpoint_leavers_data.body.#.email']}
                         employeeID: ${data['GetSailpointLeaversData.API_Integration.Custom_SailPoint_API_Integration.Get_Sailpoint_leavers_data.body.#.employeeNumber']}
                         warn: Employee with emaiId '${data['GetSailpointLeaversData.API_Integration.Custom_SailPoint_API_Integration.Get_Sailpoint_leavers_data.body.#.email']}' not exists in Identity Protection
-                    foundry_app_id: a8f3320be5d4499ea431ce3b3594cc18
+                    foundry_app_id: ${{FOUNDRY_APP_ID}}
                     remove_action_prefix: false
                 version_constraint: ~1
         conditions:
@@ -288,10 +291,11 @@ loops:
                                 - ${GetUserIdentityContext2.Privileges}
                                 - ${GetUserIdentityContext2.RiskSeverity}
                                 - ${GetSailpointLeaversData.API_Integration.Custom_SailPoint_API_Integration.Get_Sailpoint_leavers_data.body.#.attributes.endDate}
+                                - ${GetSailpointLeaversData.API_Integration.Custom_SailPoint_API_Integration.Get_Sailpoint_leavers_data.body.#.attributes.startDate}
                             custom_json:
                                 ParentLinkedAccount: ${GetUserIdentityContext.EntityGUID}
                                 type: departing_employee
-                            foundry_app_id: a8f3320be5d4499ea431ce3b3594cc18
+                            foundry_app_id: ${{FOUNDRY_APP_ID}}
                             remove_action_prefix: true
                         version_constraint: ~1
                 conditions:
