@@ -118,7 +118,7 @@ Next, go to **Foundry** > **App catalog**, find your app, and install. During ap
     * **ClientSecret** Your SailPoint API client secret
 
       **Example**:
-      <p><img width="500px" src="/app_docs/images/workdayCreds.png?raw=true">
+      <p><img width="500px" src="/app_docs/images/sailpointCreds.png?raw=true">
 
 * (SailPoint) 'Add SailPoint leavers to IDP watchlist and AD group' & 'Remove SailPoint leavers from IDP watchlist and AD group' configuration:
     * **Target Group**: Active directory group name
@@ -132,8 +132,6 @@ Next, go to **Foundry** > **App catalog**, find your app, and install. During ap
 
 > [!TIP]
 >
-> [Refer Workday Configuration section to generate ClientID ClientSecret and Refresh Token](###workday-configuration)
->
 > [Refer Active Directory Configuration section to create Active Directory group](###active-directory-configuration)
 
 
@@ -144,7 +142,7 @@ Next, go to **Foundry** > **App catalog**, find your app, and install. During ap
 * **API-Integration.** Used to connect to SailPoint API to get leaving employee data.
 * **Functions.** Used to get a user linked account.
 * **Logscale Saved Search.** Used to query departing employees data
-* **Workflow templates.** Workflow to execute API-Integrations to get leaving employees data from Workday and add/remove employees to/from Identity Protection watchlist.
+* **Workflow templates.** Workflow to execute API-Integrations to get leaving employees data from SailPoint and add/remove employees to/from Identity Protection watchlist and AD group.
 
 ### Directory structure
 
@@ -168,10 +166,10 @@ Cloud-only users (those without Active Directory accounts) are not supported in 
 
 > [!NOTE]
 > * The workflow `Add SailPoint leavers data to IDP and AD group` runs daily and processes both:
-    >   * Newly identified employees who have given notice of future departure.
+>   * Newly identified employees who have given notice of future departure (from now to +180 days in future).
 >   * Previously identified employees whose departure dates are still in the future.
-    >
-    >   The workflow will continue to add/maintain these employees on the Identity Protection watchlist and in Active Directory until their actual departure date. This ensures monitoring of all employees those who are on a notice period.
+>
+>   The workflow will continue to add/maintain these employees on the Identity Protection watchlist and in Active Directory until their actual departure date. This ensures monitoring of all employees those who are on a notice period.
 > * The workflow `Remove SailPoint leavers from IDP and AD group` runs daily and automatically removes employees from the watchlist and Active Directory after 30 days of their departure date. This automation helps maintain a clean and up-to-date entries.
 
 ## Foundry resources
