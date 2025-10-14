@@ -120,7 +120,7 @@ Next, go to **Foundry** > **App catalog**, find your app, and install. During ap
       **Example**:
       <p><img width="500px" src="/app_docs/images/sailpointCreds.png?raw=true">
 
-* (SailPoint) 'Add SailPoint leavers to IDP watchlist and AD group' & 'Remove SailPoint leavers from IDP watchlist and AD group' configuration:
+* (Workflow) 'Add SailPoint leavers to IDP watchlist and AD group' & 'Remove SailPoint leavers from IDP watchlist and AD group' configuration:
     * **Target Group**: Active directory group name
 
       **Example**:
