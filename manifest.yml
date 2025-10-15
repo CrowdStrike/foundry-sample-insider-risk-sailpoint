@@ -1,5 +1,5 @@
 app_id:
-name: Insider Risk - Sailpoint Leavers
+name: Insider Risk - SailPoint Leavers
 description: Enhanced monitoring for employees leaving an organization who may pose a high risk of insider threat to sensitive data - Employee data is synced with SailPoint
 logo: app_docs/images/logo.png
 vendor: ""

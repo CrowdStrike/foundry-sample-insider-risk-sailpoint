@@ -132,7 +132,7 @@ Next, go to **Foundry** > **App catalog**, find your app, and install. During ap
 
 > [!TIP]
 >
-> [Refer Active Directory Configuration section to create Active Directory group](###active-directory-configuration)
+> [Refer Active Directory Configuration section to create Active Directory group](#active-directory-configuration)
 
 
 ## About this sample app
