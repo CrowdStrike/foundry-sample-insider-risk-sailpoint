@@ -1,0 +1,307 @@
+name: Add SailPoint leavers data to IDP and AD group
+description: Add SailPoint leavers data to IDP watchlist and AD group
+parameters:
+    actions:
+        configuration:
+            ActiveDirectoryAddToGroup:
+                properties:
+                    group_guid:
+                        required: true
+            ActiveDirectoryAddToGroup2:
+                properties:
+                    group_guid:
+                        required: true
+provision_on_install: true
+trigger:
+    next:
+        - GetSailpointLeaversData
+    event: Schedule
+    schedule:
+        time_cycle: 0 5 */1 * *
+        start_date: ""
+        end_date: ""
+        tz: Etc/UTC
+        skip_concurrent: false
+actions:
+    CIDSpecificEventQueryQueryDepartingEmployees:
+        next:
+            - GetLookupFileMetadata
+        id: logscale_saved_search.Query departing employees
+        properties:
+            WorkflowRootExecutionID: ${Workflow.Execution.ID}
+            output_files_only: true
+            workflow_csv_header_fields:
+                - user.id
+                - user.name
+                - user.email
+                - user.attributes
+                - user.classification
+                - user.groups
+                - user.privileges
+                - user.risk_severity
+                - user.ad.sid
+                - user.ad.domain
+                - user.ad.department
+                - user.ad.lastpasswordchange
+                - user.ad.ou
+                - user.entra.id
+                - user.entra.tenant
+                - user.hire_date
+                - user.last_day
+                - user.okta.id
+                - user.parent_linked_account
+            workflow_export_event_query_results_to_csv: true
+        version_constraint: ~0
+    CreateLookupFile:
+        id: 51c4db34ab30465f796d7550f3e3e97b
+        properties:
+            lookup_file_content_file: ${CIDSpecificEventQueryQueryDepartingEmployees.file_csv}
+            lookup_file_content_type: file
+            lookup_file_name: departing_employees.csv
+            lookup_file_repo: search-all
+        version_constraint: ~1
+    GetLookupFileMetadata:
+        next:
+            - lookup_file_exists_is_equal_to_true
+        id: ace50afa2ea8438162f098b621f790fb
+        properties:
+            lookup_file_name: departing_employees.csv
+            lookup_file_repo: search-all
+        version_constraint: ~1
+    GetSailpointLeaversData:
+        next:
+            - Loop
+        id: api_integrations.SailPoint API Integration.Get Sailpoint leavers data
+        properties:
+            json:
+                includeNested: false
+                indices:
+                    - identities
+                query:
+                    query: cloudLifecycleState=\"ACTIVE\" AND attributes.endDate:[now TO now+180d]
+                queryResultFilter:
+                    includes:
+                        - name
+                        - employeeNumber
+                        - email
+                        - attributes.endDate
+                        - attributes.displayName
+                        - attributes.startDate
+            params:
+                query:
+                    count: true
+        version_constraint: ~0
+    OverwriteLookupFile:
+        id: 3fa82584a1c9103b21fb80477102a05b
+        properties:
+            lookup_file_content_file: ${CIDSpecificEventQueryQueryDepartingEmployees.file_csv}
+            lookup_file_content_type: file
+            lookup_file_name: departing_employees.csv
+            lookup_file_repo: search-all
+        version_constraint: ~1
+    Sleep:
+        next:
+            - CIDSpecificEventQueryQueryDepartingEmployees
+        id: 4f1af1ae4c13dc1e3bcd725f8dc0f63b
+        properties:
+            sleep_time: 30s
+        version_constraint: ~1
+conditions:
+    lookup_file_exists_is_equal_to_true:
+        next:
+            - OverwriteLookupFile
+        expression: GetLookupFileMetadata.lookup_file_exists:true
+        display:
+            - Lookup file exists is equal to True
+        else:
+            - CreateLookupFile
+loops:
+    Loop:
+        display: For each Body; Concurrently
+        next:
+            - Sleep
+        for:
+            input: GetSailpointLeaversData.API_Integration.Custom_SailPoint_API_Integration.Get_Sailpoint_leavers_data.body
+            continue_on_partial_execution: true
+            sequential: false
+        trigger:
+            next:
+                - GetUserIdentityContext
+        actions:
+            ActiveDirectoryAddToGroup:
+                id: de7e76d3051a39d6b9b51ba48b6e930c
+                properties:
+                    domain: ${GetUserIdentityContext.Domain}
+                    object_guid: ${GetUserIdentityContext.EntityGUID}
+                version_constraint: ~1
+            AddUserToWatchlist:
+                id: ce847154a40f63fbc77c63da20fc9581
+                properties:
+                    user_id: ${GetUserIdentityContext.EntitySid}
+            GetAssociatedLinkedAccounts:
+                next:
+                    - Loop1
+                id: functions.identity-context.Get associated linked accounts
+                properties:
+                    EntityId: ${GetUserIdentityContext.EntityGUID}
+                version_constraint: ~0
+            GetUserIdentityContext:
+                next:
+                    - user_ad_email_exists
+                id: 19c7e2af0a24f468be7797fe180c8329
+                properties:
+                    continue_if_entity_not_found: true
+                    email: ${GetSailpointLeaversData.API_Integration.Custom_SailPoint_API_Integration.Get_Sailpoint_leavers_data.body.#.email}
+                version_constraint: ~1
+            WriteToLogRepo:
+                next:
+                    - user_object_sid_exists_user_entra_object_id_does_not_exist
+                    - GetAssociatedLinkedAccounts
+                id: 0ec68880256f6192b9abef766d31fb04
+                properties:
+                    _fields:
+                        - ${GetUserIdentityContext.Domain}
+                        - ${GetUserIdentityContext.AssetsDetails}
+                        - ${GetUserIdentityContext.Email}
+                        - ${GetUserIdentityContext.UserEntraObjectID}
+                        - ${GetUserIdentityContext.Tenant}
+                        - ${GetUserIdentityContext.Ou}
+                        - ${GetUserIdentityContext.UserOktaObjectID}
+                        - ${GetUserIdentityContext.Attributes}
+                        - ${GetUserIdentityContext.Classification}
+                        - ${GetUserIdentityContext.Department}
+                        - ${GetUserIdentityContext.Groups}
+                        - ${GetUserIdentityContext.EntityName}
+                        - ${GetUserIdentityContext.EntityGUID}
+                        - ${GetUserIdentityContext.EntitySid}
+                        - ${GetUserIdentityContext.PasswordChange}
+                        - ${GetUserIdentityContext.Privileges}
+                        - ${GetUserIdentityContext.RiskSeverity}
+                        - ${GetSailpointLeaversData.API_Integration.Custom_SailPoint_API_Integration.Get_Sailpoint_leavers_data.body.#.attributes.endDate}
+                        - ${GetSailpointLeaversData.API_Integration.Custom_SailPoint_API_Integration.Get_Sailpoint_leavers_data.body.#.attributes.startDate}
+                    custom_json:
+                        type: departing_employee
+                    foundry_app_id: ${{FOUNDRY_APP_ID}}
+                    remove_action_prefix: true
+                version_constraint: ~1
+            WriteToLogRepo2:
+                id: 0ec68880256f6192b9abef766d31fb04
+                properties:
+                    _fields:
+                        - ${GetUserIdentityContext.Email}
+                        - ${GetUserIdentityContext.UserEntraObjectID}
+                        - ${GetUserIdentityContext.Tenant}
+                        - ${GetUserIdentityContext.Ou}
+                        - ${GetUserIdentityContext.UserOktaObjectID}
+                        - ${GetUserIdentityContext.Attributes}
+                        - ${GetUserIdentityContext.Classification}
+                        - ${GetUserIdentityContext.Department}
+                        - ${GetUserIdentityContext.Groups}
+                        - ${GetUserIdentityContext.EntityGUID}
+                        - ${GetUserIdentityContext.EntitySid}
+                        - ${GetUserIdentityContext.RiskSeverity}
+                    custom_json:
+                        employeeEmail: ${GetUserIdentityContext.Email}
+                        employeeGUID: ${GetUserIdentityContext.EntityGUID}
+                        employeeName: ${GetUserIdentityContext.EntityName}
+                        warn: Employee account is 'cloud_only'
+                    foundry_app_id: ${{FOUNDRY_APP_ID}}
+                version_constraint: ~1
+            WriteToLogRepo3:
+                id: 0ec68880256f6192b9abef766d31fb04
+                properties:
+                    custom_json:
+                        employeeEmail: ${data['GetSailpointLeaversData.API_Integration.Custom_SailPoint_API_Integration.Get_Sailpoint_leavers_data.body.#.email']}
+                        employeeID: ${data['GetSailpointLeaversData.API_Integration.Custom_SailPoint_API_Integration.Get_Sailpoint_leavers_data.body.#.employeeNumber']}
+                        warn: Employee with emaiId '${data['GetSailpointLeaversData.API_Integration.Custom_SailPoint_API_Integration.Get_Sailpoint_leavers_data.body.#.email']}' not exists in Identity Protection
+                    foundry_app_id: ${{FOUNDRY_APP_ID}}
+                    remove_action_prefix: false
+                version_constraint: ~1
+        conditions:
+            user_ad_email_exists:
+                next:
+                    - WriteToLogRepo
+                expression: GetUserIdentityContext.Email:!null
+                display:
+                    - User AD email exists
+                else:
+                    - WriteToLogRepo3
+            user_object_sid_exists_user_entra_object_id_does_not_exist:
+                next:
+                    - ActiveDirectoryAddToGroup
+                    - AddUserToWatchlist
+                expression: GetUserIdentityContext.EntitySid:!null+GetUserIdentityContext.UserEntraObjectID:null
+                display:
+                    - User object SID exists
+                    - User Entra Object ID does not exist
+                else:
+                    - WriteToLogRepo2
+        loops:
+            Loop1:
+                display: For each Linked accounts; Concurrently
+                for:
+                    input: GetAssociatedLinkedAccounts.FaaS.identity-context.Getassociatedlinkedaccounts.linked_entities
+                    continue_on_partial_execution: false
+                    sequential: false
+                trigger:
+                    next:
+                        - user_object_sid_instance_exists
+                actions:
+                    ActiveDirectoryAddToGroup2:
+                        id: de7e76d3051a39d6b9b51ba48b6e930c
+                        properties:
+                            domain: ${GetAssociatedLinkedAccounts.FaaS.identity-context.Getassociatedlinkedaccounts.linked_entities.#.Domain}
+                            note: Added as part of departing user linked account (${GetUserIdentityContext.EntityName} ${GetUserIdentityContext.EntityGUID})
+                            object_guid: ${GetAssociatedLinkedAccounts.FaaS.identity-context.Getassociatedlinkedaccounts.linked_entities.#.EntityId}
+                        version_constraint: ~1
+                    AddUserToWatchlist2:
+                        id: ce847154a40f63fbc77c63da20fc9581
+                        properties:
+                            note: Added as part of departing user linked account (${GetUserIdentityContext.EntityName} ${GetUserIdentityContext.EntityGUID})
+                            user_id: ${GetAssociatedLinkedAccounts.FaaS.identity-context.Getassociatedlinkedaccounts.linked_entities.#.EntitySid}
+                    GetUserIdentityContext2:
+                        next:
+                            - WriteToLogRepo4
+                        id: 19c7e2af0a24f468be7797fe180c8329
+                        properties:
+                            continue_if_entity_not_found: false
+                            entity_sid: ${GetAssociatedLinkedAccounts.FaaS.identity-context.Getassociatedlinkedaccounts.linked_entities.#.EntitySid}
+                        version_constraint: ~1
+                    WriteToLogRepo4:
+                        next:
+                            - ActiveDirectoryAddToGroup2
+                            - AddUserToWatchlist2
+                        id: 0ec68880256f6192b9abef766d31fb04
+                        properties:
+                            _fields:
+                                - ${GetUserIdentityContext2.Domain}
+                                - ${GetUserIdentityContext2.AssetsDetails}
+                                - ${GetUserIdentityContext2.Email}
+                                - ${GetUserIdentityContext2.UserEntraObjectID}
+                                - ${GetUserIdentityContext2.Tenant}
+                                - ${GetUserIdentityContext2.Ou}
+                                - ${GetUserIdentityContext2.UserOktaObjectID}
+                                - ${GetUserIdentityContext2.Attributes}
+                                - ${GetUserIdentityContext2.Classification}
+                                - ${GetUserIdentityContext2.Department}
+                                - ${GetUserIdentityContext2.Groups}
+                                - ${GetUserIdentityContext2.EntityName}
+                                - ${GetUserIdentityContext2.EntityGUID}
+                                - ${GetUserIdentityContext2.EntitySid}
+                                - ${GetUserIdentityContext2.Privileges}
+                                - ${GetUserIdentityContext2.RiskSeverity}
+                                - ${GetSailpointLeaversData.API_Integration.Custom_SailPoint_API_Integration.Get_Sailpoint_leavers_data.body.#.attributes.endDate}
+                                - ${GetSailpointLeaversData.API_Integration.Custom_SailPoint_API_Integration.Get_Sailpoint_leavers_data.body.#.attributes.startDate}
+                            custom_json:
+                                ParentLinkedAccount: ${GetUserIdentityContext.EntityGUID}
+                                type: departing_employee
+                            foundry_app_id: ${{FOUNDRY_APP_ID}}
+                            remove_action_prefix: true
+                        version_constraint: ~1
+                conditions:
+                    user_object_sid_instance_exists:
+                        next:
+                            - GetUserIdentityContext2
+                        expression: GetAssociatedLinkedAccounts.FaaS.identity-context.Getassociatedlinkedaccounts.linked_entities.#.EntitySid:!null
+                        display:
+                            - User object SID instance exists

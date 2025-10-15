@@ -1,0 +1,87 @@
+app_id:
+name: Insider Risk - SailPoint Leavers
+description: Enhanced monitoring for employees leaving an organization who may pose a high risk of insider threat to sensitive data - Employee data is synced with SailPoint
+logo: app_docs/images/logo.png
+vendor: ""
+vendor_products: []
+use_case: Data security
+manifest_version: "2023-05-09"
+ignored: []
+ui:
+    homepage: ""
+    extensions: []
+    pages: {}
+    dashboards: {}
+    navigation: {}
+api_integrations:
+    - id: e9afd9ea563648079ef7e6ae5a34d20f
+      name: SailPoint API Integration
+      description: ""
+      path: api-integrations/SailPoint_API_Integration.json
+rtr_scripts: []
+collections: []
+auth:
+    scopes:
+        - identity-graphql:write
+        - identity-assessment:read
+        - identity-entities:read
+    permissions: {}
+    roles: []
+functions:
+    - id: 6a157e2e77424256a40a2225516a812b
+      name: identity-context
+      config: null
+      description: Provide identity related context
+      path: functions/identity-context
+      environment_variables: {}
+      handlers:
+        - name: Get associated linked accounts
+          description: Retrieve linked accounts associated with entityId
+          method: GET
+          api_path: /linked-accounts
+          payload_type: ""
+          request_schema: schemas/linked_accounts_input_schema.json
+          response_schema: schemas/linked_accounts_output_schema.json
+          workflow_integration:
+            id: ed4df78077f34946b4a7e0706f3bd55e
+            disruptive: false
+            system_action: true
+            tags: []
+          permissions: []
+      language: python
+workflows:
+    - id: 06e9ec75f23343f8bec4f5ab046400bf
+      name: Remove SailPoint leavers from IDP and AD group
+      path: workflows/Remove_SailPoint_leavers_from_IDP_and_AD_group.yml
+      permissions: []
+    - id: cc286470b6ff4f6db6590bc96970b98b
+      name: Add Sailpoint leavers data to IDP and AD group
+      path: workflows/Add_leavers_data_to_IDP_watchlist_and_AD_group.yml
+      permissions: []
+parsers: []
+logscale:
+    saved_searches:
+        - id: dfaac6a3eaa14a2a9009a49ee232a441
+          name: Query departing employees
+          description: ""
+          repo_or_view: foundry:applicationview
+          query_path: saved-searches/Query_departing_employees/query.txt
+          query_params:
+            WorkflowRootExecutionID: '*'
+          input_schema_path: saved-searches/Query_departing_employees/input-schema.json
+          output_schema_path: saved-searches/Query_departing_employees/output-schema.json
+          earliest: 15m
+          latest: now
+          workflow_integration:
+            tags:
+                - Insider Threat
+            system_action: true
+          include_test_data: false
+lookup_files: []
+docs:
+    id: 4994f3e0e4cd485e958b804fe8045fdb
+    path: app_docs
+    entrypoint: README.md
+    links:
+        - images/sailpointCreds.png
+        - images/workflowConfig.png
