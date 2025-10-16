@@ -36,7 +36,7 @@ jobs:
             while ! grep -q "running at port 8081" output.log 2>/dev/null; do
               sleep 1
             done
-            echo "✅ Application started successfully!"
+            echo "✅ Application started successfully"
             kill $PID 2>/dev/null || true
           ' || {
             echo "❌ Application failed to start"
