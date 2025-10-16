@@ -14,7 +14,7 @@ ui:
     dashboards: {}
     navigation: {}
 api_integrations:
-    - id: e9afd9ea563648079ef7e6ae5a34d20f
+    - id:
       name: SailPoint API Integration
       description: ""
       path: api-integrations/SailPoint_API_Integration.json
@@ -28,7 +28,7 @@ auth:
     permissions: {}
     roles: []
 functions:
-    - id: 6a157e2e77424256a40a2225516a812b
+    - id:
       name: identity-context
       config: null
       description: Provide identity related context
@@ -61,7 +61,7 @@ workflows:
 parsers: []
 logscale:
     saved_searches:
-        - id: dfaac6a3eaa14a2a9009a49ee232a441
+        - id:
           name: Query departing employees
           description: ""
           repo_or_view: foundry:applicationview
