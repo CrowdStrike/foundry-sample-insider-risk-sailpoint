@@ -43,18 +43,18 @@ functions:
           request_schema: schemas/linked_accounts_input_schema.json
           response_schema: schemas/linked_accounts_output_schema.json
           workflow_integration:
-            id: ed4df78077f34946b4a7e0706f3bd55e
+            id: 
             disruptive: false
             system_action: true
             tags: []
           permissions: []
       language: python
 workflows:
-    - id: 06e9ec75f23343f8bec4f5ab046400bf
+    - id: 
       name: Remove SailPoint leavers from IDP and AD group
       path: workflows/Remove_SailPoint_leavers_from_IDP_and_AD_group.yml
       permissions: []
-    - id: cc286470b6ff4f6db6590bc96970b98b
+    - id: 
       name: Add Sailpoint leavers data to IDP and AD group
       path: workflows/Add_leavers_data_to_IDP_watchlist_and_AD_group.yml
       permissions: []
@@ -79,7 +79,7 @@ logscale:
           include_test_data: false
 lookup_files: []
 docs:
-    id: 4994f3e0e4cd485e958b804fe8045fdb
+    id: 
     path: app_docs
     entrypoint: README.md
     links:
