@@ -8,9 +8,10 @@ jobs:
   test-functions:
     name: Test identity-context
     runs-on: ubuntu-latest
+    timeout-minutes: 30
     steps:
       - name: Harden Runner
-        uses: step-security/harden-runner@0080882f6c36860b6ba35c610c98ce87d4e2f26f # v2.10.2
+        uses: step-security/harden-runner@95d9a5deda9de15063e7595e9719c11c38c90ae2 # v2.13.2
         with:
           egress-policy: audit
 
@@ -45,7 +46,7 @@ jobs:
             kill $PID 2>/dev/null || true
           ' || {
             echo "❌ Application failed to start"
-            cat output.log 2>/dev/null || echo "No output log found"
+            cat output.log 2>/dev/null || echo "No output log found!"
             exit 1
           }
         working-directory: functions/identity-context
