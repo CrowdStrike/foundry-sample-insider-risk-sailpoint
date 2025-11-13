@@ -46,7 +46,7 @@ jobs:
             kill $PID 2>/dev/null || true
           ' || {
             echo "❌ Application failed to start"
-            cat output.log 2>/dev/null || echo "No output log found"
+            cat output.log 2>/dev/null || echo "No output log found!"
             exit 1
           }
         working-directory: functions/identity-context
