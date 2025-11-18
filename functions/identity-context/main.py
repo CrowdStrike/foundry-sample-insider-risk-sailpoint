@@ -9,7 +9,7 @@ func = Function.instance()
 @func.handler(method="GET", path="/linked-accounts")
 def get_linked_accounts(request: Request) -> Response:
     try:
-        # Getting input variables
+        # Getting input variables from request
         entity_id = request.body.get("EntityId")
         
         # Validate entity_id is provided and is a valid UUID to prevent injection
