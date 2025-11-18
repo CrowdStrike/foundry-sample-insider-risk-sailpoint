@@ -1,24 +1,31 @@
-from crowdstrike.foundry.function import Function, Request, Response, APIError
-from falconpy import IdentityProtection
+"""Function to retrieve linked Active Directory accounts for CrowdStrike Identity Protection entities."""
 import json
 import uuid
 
-func = Function.instance()
+from crowdstrike.foundry.function import Function, Request, Response, APIError
+from falconpy import IdentityProtection
 
+FUNC = Function.instance()
 
-@func.handler(method="GET", path="/linked-accounts")
+@FUNC.handler(method="GET", path="/linked-accounts")
 def get_linked_accounts(request: Request) -> Response:
+    """Retrieve linked AD accounts for a given entity ID.
+
+    Args:
+        request: Request object containing EntityId in body
+
+    Returns:
+        Response object with linked entities or error
+    """
     try:
         # Getting input variables from request
         entity_id = request.body.get("EntityId")
-        
         # Validate entity_id is provided and is a valid UUID to prevent injection
         if not entity_id:
             return Response(
                 code=400,
                 errors=[APIError(code=400, message="EntityId is required")]
             )
-        
         try:
             # Validate UUID format - this prevents injection attacks
             uuid.UUID(str(entity_id))
@@ -82,7 +89,7 @@ def get_linked_accounts(request: Request) -> Response:
             code=200,
         )
 
-    except Exception as e:
+    except (ValueError, KeyError, AttributeError) as e:
         return Response(
             code=500,
             errors=[APIError(code=500, message=f"Internal server error: {str(e)}")],
@@ -90,4 +97,4 @@ def get_linked_accounts(request: Request) -> Response:
 
 
 if __name__ == "__main__":
-    func.run()
+    FUNC.run()
