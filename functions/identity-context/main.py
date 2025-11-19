@@ -9,7 +9,7 @@ FUNC = Function.instance()
 
 @FUNC.handler(method="GET", path="/linked-accounts")
 def get_linked_accounts(request: Request) -> Response:
-    """Retrieve linked AD accounts for a given entity ID.
+    """Retrieve linked AD accounts for a given entityID.
 
     Args:
         request: Request object containing EntityId in body
