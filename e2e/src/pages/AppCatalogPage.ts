@@ -169,13 +169,13 @@ export class AppCatalogPage extends BasePage {
       return 'SailPoint-Leavers-Group-2';
     }
 
-    // OAuth/API credentials need realistic base64-like formats
+    // OAuth/API credentials - use real credentials from config
     if (combined.includes('clientid') || combined.includes('client_id') || combined.includes('client id')) {
-      return 'MjkzZWY0NWEtZTNiNy00YzJkLWI5ZjYtOGE3YmMxZDIzNDU2';
+      return config.sailPointClientId;
     }
 
     if (inputType === 'password' && (combined.includes('clientsecret') || combined.includes('client_secret') || combined.includes('client secret'))) {
-      return 'NGY1ZDYyYzgtOTM0Yi00YWUzLWJhNzItMWQ4ZjdhNjhiOWNm';
+      return config.sailPointClientSecret;
     }
 
     if (combined.includes('host') || combined.includes('url')) {

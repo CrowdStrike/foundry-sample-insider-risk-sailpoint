@@ -17,6 +17,8 @@ export class TestConfig {
   // App configuration
   public readonly appName: string;
   public readonly sailPointHost: string;
+  public readonly sailPointClientId: string;
+  public readonly sailPointClientSecret: string;
   
   // Test configuration
   public readonly defaultTimeout: number;
@@ -44,6 +46,8 @@ export class TestConfig {
     // App configuration
     this.appName = this.getRequiredEnv('APP_NAME');
     this.sailPointHost = this.getRequiredEnv('SAILPOINT_HOST');
+    this.sailPointClientId = this.getRequiredEnv('SAILPOINT_CLIENT_ID');
+    this.sailPointClientSecret = this.getRequiredEnv('SAILPOINT_CLIENT_SECRET');
     
     // Test timeouts (configurable defaults - longer in CI due to slower hardware)
     this.defaultTimeout = parseInt(process.env.DEFAULT_TIMEOUT || (this.isCI ? '45000' : '30000'));
@@ -71,7 +75,9 @@ export class TestConfig {
       'FALCON_PASSWORD',
       'FALCON_AUTH_SECRET',
       'APP_NAME',
-      'SAILPOINT_HOST'
+      'SAILPOINT_HOST',
+      'SAILPOINT_CLIENT_ID',
+      'SAILPOINT_CLIENT_SECRET'
     ];
     
     const missing = required.filter(key => !process.env[key]);
