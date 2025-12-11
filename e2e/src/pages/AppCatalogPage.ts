@@ -1,0 +1,490 @@
+/**
+ * AppCatalogPage - App installation and management
+ */
+
+import { Page } from '@playwright/test';
+import { BasePage } from './BasePage';
+import { RetryHandler } from '../utils/SmartWaiter';
+import { config } from '../config/TestConfig';
+
+export class AppCatalogPage extends BasePage {
+  constructor(page: Page) {
+    super(page, 'AppCatalogPage');
+  }
+
+  protected getPagePath(): string {
+    return '/foundry/app-catalog';
+  }
+
+  protected async verifyPageLoaded(): Promise<void> {
+    await this.waiter.waitForVisible(
+      this.page.locator('text=App Catalog').or(this.page.locator('text=Apps')),
+      { description: 'App Catalog page' }
+    );
+
+    this.logger.success('App Catalog page loaded successfully');
+  }
+
+  /**
+   * Search for app in catalog and navigate to its page
+   */
+  private async searchAndNavigateToApp(appName: string): Promise<void> {
+    this.logger.info(`Searching for app '${appName}' in catalog`);
+
+    await this.navigateToPath('/foundry/app-catalog', 'App catalog page');
+
+    // Try the "Type to filter" search box on the left side
+    const filterBox = this.page.getByPlaceholder('Type to filter');
+    if (await filterBox.isVisible().catch(() => false)) {
+      await filterBox.fill(appName);
+      await this.page.waitForLoadState('networkidle');
+    }
+
+    // Look for the app link or card
+    const appLink = this.page.getByRole('link', { name: appName, exact: true })
+      .or(this.page.getByText(appName, { exact: true }));
+
+    try {
+      await this.waiter.waitForVisible(appLink, {
+        description: `App '${appName}' link in catalog`,
+        timeout: 10000
+      });
+      this.logger.success(`Found app '${appName}' in catalog`);
+      await this.smartClick(appLink, `App '${appName}' link`);
+      await this.page.waitForLoadState('networkidle');
+    } catch (error) {
+      throw new Error(`Could not find app '${appName}' in catalog. Make sure the app is deployed.`);
+    }
+  }
+
+  /**
+   * Check if app is installed
+   */
+  async isAppInstalled(appName: string): Promise<boolean> {
+    this.logger.step(`Check if app '${appName}' is installed`);
+
+    // Search for and navigate to the app's catalog page
+    await this.searchAndNavigateToApp(appName);
+
+    // Check for installation indicators on the app's page
+    // Simple check: if "Install now" link exists, app is NOT installed
+    const installLink = this.page.getByRole('link', { name: 'Install now' });
+    const hasInstallLink = await this.elementExists(installLink, 3000);
+
+    const isInstalled = !hasInstallLink;
+    this.logger.info(`App '${appName}' installation status: ${isInstalled ? 'Installed' : 'Not installed'}`);
+
+    return isInstalled;
+  }
+
+  /**
+   * Install app if not already installed
+   */
+  async installApp(appName: string): Promise<boolean> {
+    this.logger.step(`Install app '${appName}'`);
+
+    const isInstalled = await this.isAppInstalled(appName);
+    if (isInstalled) {
+      this.logger.info(`App '${appName}' is already installed`);
+      return false;
+    }
+
+    this.logger.info('Installing app...');
+    const installLink = this.page.getByRole('link', { name: 'Install now' });
+
+    await this.waiter.waitForVisible(installLink, { description: 'Install now link' });
+    await this.smartClick(installLink, 'Install now link');
+
+    // Wait for URL to change to install page and page to stabilize
+    await this.page.waitForURL(/\/foundry\/app-catalog\/[^\/]+\/install$/, { timeout: 10000 });
+    await this.page.waitForLoadState('networkidle');
+
+    // Handle permissions dialog
+    await this.handlePermissionsDialog();
+
+    // Check for API integration configuration screen
+    await this.configureApiIntegrationIfNeeded();
+
+    // Click final Install app button
+    await this.clickInstallAppButton();
+
+    // Wait for installation to complete
+    await this.waitForInstallation(appName);
+
+    this.logger.success(`App '${appName}' installed successfully`);
+    return true;
+  }
+
+  /**
+   * Handle permissions dialog if present
+   */
+  private async handlePermissionsDialog(): Promise<void> {
+    const acceptButton = this.page.getByRole('button', { name: /accept.*continue/i });
+
+    if (await this.elementExists(acceptButton, 3000)) {
+      await this.smartClick(acceptButton, 'Accept and continue button');
+      await this.waiter.delay(2000);
+    }
+  }
+
+  /**
+   * Get field context by looking at nearby labels and text
+   */
+  private async getFieldContext(input: any): Promise<string> {
+    try {
+      // Try to find the label element
+      const id = await input.getAttribute('id');
+      if (id) {
+        const label = this.page.locator(`label[for="${id}"]`);
+        if (await label.isVisible({ timeout: 1000 }).catch(() => false)) {
+          const labelText = await label.textContent();
+          if (labelText) return labelText.toLowerCase();
+        }
+      }
+
+      // Look at parent container for context
+      const parent = input.locator('xpath=ancestor::div[contains(@class, "form") or contains(@class, "field") or contains(@class, "input")][1]');
+      if (await parent.isVisible({ timeout: 1000 }).catch(() => false)) {
+        const parentText = await parent.textContent();
+        if (parentText) return parentText.toLowerCase();
+      }
+    } catch (error) {
+      // Continue if we can't get context
+    }
+    return '';
+  }
+
+  /**
+   * Get value for a field based on its context
+   */
+  private getFieldValue(context: string, name: string, placeholder: string, inputType: string): string {
+    const combined = `${context} ${name} ${placeholder}`.toLowerCase();
+
+    // SailPoint specific fields
+    if (combined.includes('target group') || combined.includes('targetgroup')) {
+      // Return different group names for multiple target group fields
+      if (combined.includes('1') || context.includes('configuration 1')) {
+        return 'SailPoint-Leavers-Group-1';
+      }
+      return 'SailPoint-Leavers-Group-2';
+    }
+
+    // OAuth/API credentials - use real credentials from config
+    if (combined.includes('clientid') || combined.includes('client_id') || combined.includes('client id')) {
+      return config.sailPointClientId;
+    }
+
+    if (inputType === 'password' && (combined.includes('clientsecret') || combined.includes('client_secret') || combined.includes('client secret'))) {
+      return config.sailPointClientSecret;
+    }
+
+    if (combined.includes('host') || combined.includes('url')) {
+      return config.sailPointHost;
+    }
+
+    if (combined.includes('name') && !combined.includes('host') && !combined.includes('user')) {
+      return 'Test Config';
+    }
+
+    // Default values
+    return inputType === 'password' ? 'test-secret' : 'test-value';
+  }
+
+  /**
+   * Configure API integration if configuration form is present during installation.
+   */
+  private async configureApiIntegrationIfNeeded(): Promise<void> {
+    // First, check if we can proceed without filling any fields
+    const installButton = this.page.getByRole('button', { name: 'Save and install' })
+      .or(this.page.getByRole('button', { name: 'Install app' }));
+
+    const hasInstallButton = await this.elementExists(installButton, 3000);
+    if (hasInstallButton) {
+      return;
+    }
+
+    // Navigate through configuration screens
+    let configCount = 0;
+    let hasNextSetting = true;
+
+    while (hasNextSetting && configCount < 5) {
+      configCount++;
+      this.logger.info(`Configuring settings screen ${configCount}...`);
+
+      // Fill text inputs
+      const inputs = this.page.locator('input[type="text"], input[type="url"], input:not([type="password"]):not([type]):not([type="search"]), textarea, [contenteditable="true"], [role="textbox"]');
+      const count = await inputs.count();
+
+      for (let i = 0; i < count; i++) {
+        const input = inputs.nth(i);
+        if (await input.isVisible()) {
+          const name = await input.getAttribute('name') || '';
+          const placeholder = await input.getAttribute('placeholder') || '';
+          const context = (await this.getFieldContext(input)).trim().replace(/\s+/g, ' ');
+
+          const value = this.getFieldValue(context, name, placeholder, 'text');
+          await input.fill(value);
+        }
+      }
+
+      // Configure Target Group dropdowns
+      const targetGroupLabels = this.page.getByText('Target Group');
+      const targetGroupCount = await targetGroupLabels.count();
+
+      for (let i = 0; i < targetGroupCount; i++) {
+        const label = targetGroupLabels.nth(i);
+        const dropdownContainer = label.locator('..').locator('[role="button"], button, div').filter({ hasText: '' }).first();
+
+        if (await this.elementExists(dropdownContainer, 2000)) {
+          try {
+            await dropdownContainer.click();
+            await this.waiter.delay(1000);
+
+            const dropdownOptions = this.page.locator('[role="option"], .option, li[data-value], div[data-value]');
+            const optionCount = await dropdownOptions.count();
+
+            if (optionCount > 0) {
+              await dropdownOptions.first().click();
+              await this.waiter.delay(500);
+            }
+          } catch (error) {
+            // Try fallback approach
+            try {
+              const container = label.locator('..');
+              await container.click();
+              await this.waiter.delay(1000);
+
+              const fallbackOptions = this.page.locator('[role="option"], .option');
+              if (await fallbackOptions.count() > 0) {
+                await fallbackOptions.first().click();
+              }
+            } catch (fallbackError) {
+              // Continue if configuration fails
+            }
+          }
+        }
+      }
+
+      await this.waiter.delay(2000);
+
+      // Fill password inputs
+      const passwordInputs = this.page.locator('input[type="password"]');
+      const passwordCount = await passwordInputs.count();
+
+      for (let i = 0; i < passwordCount; i++) {
+        const input = passwordInputs.nth(i);
+        if (await input.isVisible()) {
+          const name = await input.getAttribute('name') || '';
+          const placeholder = await input.getAttribute('placeholder') || '';
+          const context = (await this.getFieldContext(input)).trim().replace(/\s+/g, ' ');
+
+          const value = this.getFieldValue(context, name, placeholder, 'password');
+          await input.fill(value);
+        }
+      }
+
+      // Check for "Next setting" button
+      const nextSettingButton = this.page.getByRole('button', { name: /next setting/i });
+      hasNextSetting = await this.elementExists(nextSettingButton, 2000);
+
+      if (hasNextSetting) {
+        try {
+          await nextSettingButton.waitFor({ state: 'visible' });
+
+          const isDisabled = await nextSettingButton.getAttribute('aria-disabled');
+          if (isDisabled === 'true') {
+            await this.waiter.delay(2000);
+          }
+
+          await this.smartClick(nextSettingButton, 'Next setting button');
+          await this.page.waitForLoadState('networkidle');
+          await this.waiter.delay(3000);
+        } catch (error) {
+          break;
+        }
+      }
+    }
+
+    if (configCount > 0) {
+      this.logger.info(`Completed ${configCount} configuration screen(s)`);
+    }
+  }
+
+  /**
+   * Click the final "Save and install" or "Install app" button
+   */
+  private async clickInstallAppButton(): Promise<void> {
+    const installButton = this.page.getByRole('button', { name: 'Save and install' })
+      .or(this.page.getByRole('button', { name: 'Install app' }));
+
+    await this.waiter.waitForVisible(installButton, { description: 'Install button' });
+    await installButton.waitFor({ state: 'visible', timeout: 10000 });
+    await installButton.waitFor({ state: 'attached', timeout: 5000 });
+
+    await this.waiter.delay(1000);
+    await this.smartClick(installButton, 'Install app button');
+  }
+
+  /**
+   * Wait for installation to complete
+   */
+  private async waitForInstallation(appName: string): Promise<void> {
+    this.logger.info('Waiting for installation to complete...');
+
+    // Wait for URL to change or network to settle
+    await Promise.race([
+      this.page.waitForURL(/\/foundry\/(app-catalog|home)/, { timeout: 15000 }),
+      this.page.waitForLoadState('networkidle', { timeout: 15000 })
+    ]).catch(() => {});
+
+    // Look for first "installing" message
+    const installingMessage = this.page.getByText(/installing/i).first();
+
+    try {
+      await installingMessage.waitFor({ state: 'visible', timeout: 30000 });
+      this.logger.success('Installation started - "installing" message appeared');
+    } catch (error) {
+      throw new Error(`Installation failed to start for app '${appName}' - "installing" message never appeared. Installation may have failed immediately.`);
+    }
+
+    // Wait for second toast with final status (installed or error)
+    const installedMessage = this.page.getByText(`${appName} installed`).first();
+    const errorMessage = this.page.getByText(`Error installing ${appName}`).first();
+
+    try {
+      const result = await Promise.race([
+        installedMessage.waitFor({ state: 'visible', timeout: 60000 }).then(() => 'success'),
+        errorMessage.waitFor({ state: 'visible', timeout: 60000 }).then(() => 'error')
+      ]);
+
+      if (result === 'error') {
+        // Get the actual error message from the toast and clean up formatting
+        const errorText = await errorMessage.textContent();
+        const cleanError = errorText?.replace(/\s+/g, ' ').trim() || 'Unknown error';
+        throw new Error(`Installation failed for app '${appName}': ${cleanError}`);
+      }
+      this.logger.success('Installation completed successfully - "installed" message appeared');
+    } catch (error) {
+      if (error.message.includes('Installation failed')) {
+        throw error;
+      }
+      throw new Error(`Installation status unclear for app '${appName}' - timed out waiting for "installed" or "error" message after 60 seconds`);
+    }
+
+    // Brief catalog status check (5-10s) - "installed" toast is the real signal
+    // This is just for logging/verification, not a hard requirement
+    this.logger.info('Checking catalog status briefly (installation already confirmed by toast)...');
+
+    // Navigate directly to app catalog with search query
+    const baseUrl = new URL(this.page.url()).origin;
+    await this.page.goto(`${baseUrl}/foundry/app-catalog?q=${appName}`);
+    await this.page.waitForLoadState('networkidle');
+
+    // Check status a couple times (up to 10 seconds)
+    const statusText = this.page.locator('[data-test-selector="status-text"]').filter({ hasText: /installed/i });
+    const maxAttempts = 2; // 2 attempts = up to 10 seconds
+
+    for (let attempt = 0; attempt < maxAttempts; attempt++) {
+      const isVisible = await statusText.isVisible().catch(() => false);
+
+      if (isVisible) {
+        this.logger.success('Catalog status verified - shows Installed');
+        return;
+      }
+
+      if (attempt < maxAttempts - 1) {
+        this.logger.info(`Catalog status not yet updated, waiting 5s before refresh (attempt ${attempt + 1}/${maxAttempts})...`);
+        await this.waiter.delay(5000);
+        await this.page.reload({ waitUntil: 'domcontentloaded' });
+      }
+    }
+
+    // Don't fail - the "installed" toast is reliable enough
+    this.logger.info(`Catalog status not updated yet after ${maxAttempts * 5}s, but toast confirmed installation - continuing`);
+  }
+
+  /**
+   * Navigate to app via Custom Apps menu
+   */
+  async navigateToAppViaCustomApps(appName: string): Promise<void> {
+    this.logger.step(`Navigate to app '${appName}' via Custom Apps`);
+
+    return RetryHandler.withPlaywrightRetry(
+      async () => {
+        // Navigate to Foundry home
+        await this.navigateToPath('/foundry/home', 'Foundry home page');
+
+        // Open hamburger menu
+        const menuButton = this.page.getByTestId('nav-trigger');
+        await this.smartClick(menuButton, 'Menu button');
+
+        // Click Custom apps
+        const customAppsButton = this.page.getByRole('button', { name: 'Custom apps' });
+        await this.smartClick(customAppsButton, 'Custom apps button');
+
+        // Find and click the app
+        const appButton = this.page.getByRole('button', { name: appName, exact: false }).first();
+        if (await this.elementExists(appButton, 3000)) {
+          await this.smartClick(appButton, `App '${appName}' button`);
+          await this.waiter.delay(1000);
+
+          this.logger.success(`Navigated to app '${appName}' via Custom Apps`);
+          return;
+        }
+
+        throw new Error(`App '${appName}' not found in Custom Apps menu`);
+      },
+      `Navigate to app via Custom Apps`
+    );
+  }
+
+  /**
+   * Uninstall app
+   */
+  async uninstallApp(appName: string): Promise<void> {
+    this.logger.step(`Uninstall app '${appName}'`);
+
+    try {
+      // Search for and navigate to the app's catalog page
+      await this.searchAndNavigateToApp(appName);
+
+      // Check if app is actually installed by looking for "Install now" link
+      // If "Install now" link exists, app is NOT installed
+      const installLink = this.page.getByRole('link', { name: 'Install now' });
+      const hasInstallLink = await this.elementExists(installLink, 3000);
+
+      if (hasInstallLink) {
+        this.logger.info(`App '${appName}' is already uninstalled`);
+        return;
+      }
+
+      // Click the 3-dot menu button
+      const openMenuButton = this.page.getByRole('button', { name: 'Open menu' });
+      await this.waiter.waitForVisible(openMenuButton, { description: 'Open menu button' });
+      await this.smartClick(openMenuButton, 'Open menu button');
+
+      // Click "Uninstall app" menuitem
+      const uninstallMenuItem = this.page.getByRole('menuitem', { name: 'Uninstall app' });
+      await this.waiter.waitForVisible(uninstallMenuItem, { description: 'Uninstall app menuitem' });
+      await this.smartClick(uninstallMenuItem, 'Uninstall app menuitem');
+
+      // Confirm uninstallation in modal
+      const uninstallButton = this.page.getByRole('button', { name: 'Uninstall' });
+      await this.waiter.waitForVisible(uninstallButton, { description: 'Uninstall confirmation button' });
+      await this.smartClick(uninstallButton, 'Uninstall button');
+
+      // Wait for success message
+      const successMessage = this.page.getByText(/has been uninstalled/i);
+      await this.waiter.waitForVisible(successMessage, {
+        description: 'Uninstall success message',
+        timeout: 30000
+      });
+
+      this.logger.success(`App '${appName}' uninstalled successfully`);
+
+    } catch (error) {
+      this.logger.warn(`Failed to uninstall app '${appName}': ${error.message}`);
+      throw error;
+    }
+  }
+}
