@@ -30,7 +30,6 @@ FALCON_BASE_URL=https://falcon.us-2.crowdstrike.com
 APP_NAME=foundry-sample-insider-risk-sailpoint
 
 # SailPoint API Credentials (required for installation)
-# Note: Use the base URL only, without /oauth/token
 SAILPOINT_HOST=https://your-tenant.api.identitynow.com
 SAILPOINT_CLIENT_ID=your-sailpoint-client-id
 SAILPOINT_CLIENT_SECRET=your-sailpoint-client-secret
