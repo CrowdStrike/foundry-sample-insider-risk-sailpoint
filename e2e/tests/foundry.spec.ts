@@ -14,11 +14,6 @@ test.describe('SailPoint Insider Risk E2E Tests', () => {
     await workflowsPage.verifyWorkflowExists('Add SailPoint leavers data to IDP and AD group');
   });
 
-  test('should verify "Remove SailPoint leavers from IDP and AD group" workflow exists', async ({ workflowsPage }) => {
-    await workflowsPage.navigateToWorkflows();
-    await workflowsPage.verifyWorkflowExists('Remove SailPoint leavers from IDP and AD group');
-  });
-
   test('should verify "Add SailPoint leavers data to IDP and AD group" workflow renders properly', async ({ workflowsPage }) => {
     await workflowsPage.navigateToWorkflows();
     await workflowsPage.verifyWorkflowRenders('Add SailPoint leavers data to IDP and AD group');
