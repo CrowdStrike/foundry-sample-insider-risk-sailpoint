@@ -38,9 +38,7 @@ export class AppCatalogPage extends BasePage {
     await this.page.goto(`${baseUrl}/foundry/app-catalog?filter=${filterParam}`);
     await this.page.waitForLoadState('networkidle');
 
-    // Look for the app link or card
-    const appLink = this.page.getByRole('link', { name: appName, exact: true })
-      .or(this.page.getByText(appName, { exact: true }));
+    const appLink = this.page.getByRole('link', { name: appName, exact: true });
 
     try {
       await this.waiter.waitForVisible(appLink, {
