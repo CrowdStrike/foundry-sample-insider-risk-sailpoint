@@ -190,13 +190,13 @@ export class AppCatalogPage extends BasePage {
    * Configure API integration if configuration form is present during installation.
    */
   private async configureApiIntegrationIfNeeded(): Promise<void> {
-    // First, check if we can proceed without filling any fields
-    const installButton = this.page.getByRole('button', { name: 'Save and install' })
-      .or(this.page.getByRole('button', { name: 'Install app' }));
-
-    const hasInstallButton = await this.elementExists(installButton, 3000);
-    if (hasInstallButton) {
-      return;
+    // Verify the credential prompt appears — this app requires API credentials
+    // Check for password fields specifically since workflow config screens only have text fields
+    const passwordInput = this.page.locator('input[type="password"]');
+    try {
+      await passwordInput.first().waitFor({ state: 'visible', timeout: 15000 });
+    } catch (error) {
+      throw new Error('This app should prompt for API credentials');
     }
 
     // Navigate through configuration screens
