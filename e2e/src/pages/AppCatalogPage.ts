@@ -190,18 +190,10 @@ export class AppCatalogPage extends BasePage {
    * Configure API integration if configuration form is present during installation.
    */
   private async configureApiIntegrationIfNeeded(): Promise<void> {
-    // Verify the credential prompt appears — this app requires API credentials
-    // Check for password fields specifically since workflow config screens only have text fields
-    const passwordInput = this.page.locator('input[type="password"]');
-    try {
-      await passwordInput.first().waitFor({ state: 'visible', timeout: 15000 });
-    } catch (error) {
-      throw new Error('This app should prompt for API credentials');
-    }
-
-    // Navigate through configuration screens
+    // Navigate through all configuration screens, tracking whether API credentials appeared
     let configCount = 0;
     let hasNextSetting = true;
+    let foundPasswordFields = false;
 
     while (hasNextSetting && configCount < 5) {
       configCount++;
@@ -267,6 +259,10 @@ export class AppCatalogPage extends BasePage {
       const passwordInputs = this.page.locator('input[type="password"]');
       const passwordCount = await passwordInputs.count();
 
+      if (passwordCount > 0) {
+        foundPasswordFields = true;
+      }
+
       for (let i = 0; i < passwordCount; i++) {
         const input = passwordInputs.nth(i);
         if (await input.isVisible()) {
@@ -303,6 +299,10 @@ export class AppCatalogPage extends BasePage {
 
     if (configCount > 0) {
       this.logger.info(`Completed ${configCount} configuration screen(s)`);
+    }
+
+    if (!foundPasswordFields) {
+      throw new Error('This app should prompt for API credentials but no password fields were found across all configuration screens');
     }
   }
 
