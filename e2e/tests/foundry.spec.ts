@@ -33,7 +33,7 @@ test.describe('SailPoint Insider Risk E2E Tests', () => {
     // Open the workflow - this verifies it has proper configuration
     const workflowLink = workflowsPage.page.getByRole('link', { name: /Add.*SailPoint.*leavers.*data/i });
     await workflowLink.click();
-    await workflowsPage.page.waitForLoadState('networkidle');
+    await workflowsPage.page.waitForLoadState('domcontentloaded');
 
     // Just verify we can access the workflow details page
     // (The specific cron schedule display may vary)
