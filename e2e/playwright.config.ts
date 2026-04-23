@@ -1,4 +1,6 @@
 import { defineFoundryConfig } from '@crowdstrike/foundry-playwright';
 
-export default defineFoundryConfig();
+export default defineFoundryConfig({
+  appInstallDir: './tests',
+});
 
