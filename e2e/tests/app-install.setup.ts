@@ -20,19 +20,19 @@ setup('install app', async ({ page }) => {
           await page.getByRole('textbox', { name: 'clientSecret' }).fill(process.env.SAILPOINT_CLIENT_SECRET || 'test-client-secret');
         } else {
           // Target Group dropdown screen (appears twice with different options)
-          const targetGroupButtons = page.getByRole('button', { name: 'Target Group', exact: true });
-          await targetGroupButtons.first().click();
+          const targetGroupComboboxes = page.getByRole('combobox', { name: 'Target Group' });
+          await targetGroupComboboxes.first().click();
 
           // Try the specific options first (screen 2), fall back to first option (screen 3)
           if (await page.getByRole('option', { name: 'User object GUID instance' }).isVisible({ timeout: 2000 }).catch(() => false)) {
             await page.getByRole('option', { name: 'User object GUID instance' }).click();
-            await targetGroupButtons.first().click();
-            await page.getByRole('option', { name: 'User object GUID' }).click();
+            await targetGroupComboboxes.last().click();
+            await page.getByRole('option', { name: 'User object GUID', exact: true }).click();
           } else {
             const options = page.getByRole('option');
             await options.first().waitFor({ state: 'visible', timeout: 5000 });
             await options.first().click();
-            await targetGroupButtons.first().click();
+            await targetGroupComboboxes.last().click();
             await options.first().waitFor({ state: 'visible', timeout: 5000 });
             await options.first().click();
           }
