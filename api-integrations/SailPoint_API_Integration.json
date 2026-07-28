@@ -15,9 +15,6 @@
     }
   },
   "info": {
-    "contact": {
-      "email": "shalabh.sharma@crowdstrike.com"
-    },
     "description": "SailPoint API Integration",
     "title": "SailPoint API Integration",
     "version": ""
