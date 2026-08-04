@@ -7,12 +7,13 @@ REPO_ROOT="$(git rev-parse --show-toplevel)"
 git config core.hooksPath "$REPO_ROOT/.githooks"
 echo "✅ Git hooks configured. Using .githooks/ directory."
 
-if command -v pre-commit &>/dev/null; then
-    echo "✅ pre-commit is installed."
+if command -v gitleaks &>/dev/null; then
+    echo "✅ gitleaks is installed. Secrets will be scanned on commit."
 else
     echo ""
-    echo "⚠️  pre-commit is not installed. Install it for local secret scanning:"
+    echo "⚠️  gitleaks is not installed. Install it for local secret scanning:"
     echo ""
-    echo "  pip install pre-commit   # OR: brew install pre-commit"
+    echo "  brew install gitleaks"
     echo ""
+    echo "Without it, CI will still catch secrets on push."
 fi

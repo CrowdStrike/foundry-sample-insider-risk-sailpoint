@@ -179,22 +179,23 @@ Cloud-only users (those without Active Directory accounts) are not supported in 
 
 ## Pre-Commit Hooks
 
-This repository uses [pre-commit](https://pre-commit.com/) hooks to prevent accidental secret commits.
+This repository uses git hooks to scan for hardcoded secrets before commits.
 
 ### Setup
 
 ```bash
-# 1. Configure git hooks (required — run once after cloning)
+# Run once after cloning
 ./scripts/setup-hooks.sh
-
-# 2. Install pre-commit (recommended — enables local secret scanning)
-pip install pre-commit   # OR: brew install pre-commit
-pre-commit install
 ```
 
-On `git commit`, the hook checks if pre-commit is installed:
-- **Installed:** runs gitleaks secret scanning. Blocks commit if secrets are detected.
-- **Not installed:** prints install instructions and allows the commit. CI still catches secrets on push.
+On `git commit`, the hook checks for available tools:
+- **gitleaks installed:** scans staged changes and blocks commit if secrets are detected.
+- **Neither installed:** prints install instructions and allows the commit. CI still catches secrets on push.
+
+**Install gitleaks** (recommended):
+```bash
+brew install gitleaks
+```
 
 **Bypass (false positives only):**
 ```bash
