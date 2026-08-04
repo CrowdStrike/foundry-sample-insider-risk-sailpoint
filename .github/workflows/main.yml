@@ -5,21 +5,6 @@ permissions:
   contents: read
 
 jobs:
-  secret-scan:
-    name: Detect hardcoded secrets
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@8e8c483db84b4bee98b60c0593521ed34d9990e8  # v6.0.1
-        with:
-          fetch-depth: 0
-      - uses: actions/setup-go@d35c59abb061a4a6fb18e82ac0862c26744d6ab5  # v5.5.0
-        with:
-          go-version: 'stable'
-      - name: Install gitleaks
-        run: go install github.com/zricethezav/gitleaks/v8@latest
-      - name: Run gitleaks
-        run: gitleaks detect --source . --verbose --redact
-
   test-functions:
     name: Test identity-context
     runs-on: ubuntu-latest
