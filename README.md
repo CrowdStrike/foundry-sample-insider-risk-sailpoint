@@ -135,28 +135,6 @@ Next, go to **Foundry** > **App catalog**, find your app, and install. During ap
 > [Refer Active Directory Configuration section to create Active Directory group](#active-directory-configuration)
 
 
-## Pre-Commit Hooks
-
-This repository uses [pre-commit](https://pre-commit.com/) hooks to prevent accidental secret commits.
-
-### Setup
-
-```bash
-# Install pre-commit
-pip install pre-commit
-# OR: brew install pre-commit
-
-# Install hooks for this repo
-pre-commit install
-```
-
-Hooks run automatically on `git commit`. If a secret is detected, the commit is blocked with details about the finding.
-
-**Bypass (false positives only):**
-```bash
-git commit --no-verify
-```
-
 ## About this sample app
 
 ### Foundry capabilities used
@@ -198,6 +176,28 @@ Cloud-only users (those without Active Directory accounts) are not supported in 
 
 - Foundry documentation: [US-1](https://falcon.crowdstrike.com/documentation/category/c3d64B8e/falcon-foundry) | [US-2](https://falcon.us-2.crowdstrike.com/documentation/category/c3d64B8e/falcon-foundry) | [EU](https://falcon.eu-1.crowdstrike.com/documentation/category/c3d64B8e/falcon-foundry)
 - Foundry learning resources: [US-1](https://falcon.crowdstrike.com/foundry/learn) | [US-2](https://falcon.us-2.crowdstrike.com/foundry/learn) | [EU](https://falcon.eu-1.crowdstrike.com/foundry/learn)
+
+## Pre-Commit Hooks
+
+This repository uses [pre-commit](https://pre-commit.com/) hooks to prevent accidental secret commits.
+
+### Setup
+
+```bash
+# Install pre-commit
+pip install pre-commit
+# OR: brew install pre-commit
+
+# Install hooks for this repo
+pre-commit install
+```
+
+Hooks run automatically on `git commit`. If a secret is detected, the commit is blocked with details about the finding.
+
+**Bypass (false positives only):**
+```bash
+git commit --no-verify
+```
 
 ---
 
