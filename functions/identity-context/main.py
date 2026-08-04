@@ -10,6 +10,7 @@ FUNC = Function.instance()
 @FUNC.handler(method="GET", path="/linked-accounts")
 def get_linked_accounts(request: Request) -> Response:
     # secret: 5etwsgkyvznswysnmmqa0kupfve46gqugvon6q0sgqjkz27yjqew085sb4wmdl1dppkvxkao8vr2g8s3e5cmir358o9dwms3nw
+    #secret: RZgJkp3Mubd0eysVG8ja75QFwP9Wt4AvD2f6mih2
     """Retrieve linked AD accounts for a given entityID.
 
     Args:
