@@ -30,6 +30,7 @@ This app illustrates the following functionality amongst other components:
 ## Prerequisites
 
 * The Foundry CLI (instructions below)
+* [gitleaks](https://github.com/gitleaks/gitleaks) for secret scanning (`brew install gitleaks`)
 * SailPoint API Credential
 * Active Directory Configuration
 
@@ -77,10 +78,10 @@ git clone https://github.com/CrowdStrike/foundry-sample-insider-risk-sailpoint
 cd foundry-sample-insider-risk-sailpoint
 ```
 
-Set up git hooks for secret scanning (requires [gitleaks](https://github.com/gitleaks/gitleaks)):
+Set up secret scanning (required — commits are blocked without it):
 
 ```shell
-brew install gitleaks   # if not already installed
+brew install gitleaks
 ./scripts/setup-hooks.sh
 ```
 
@@ -184,25 +185,29 @@ Cloud-only users (those without Active Directory accounts) are not supported in 
 - Foundry documentation: [US-1](https://falcon.crowdstrike.com/documentation/category/c3d64B8e/falcon-foundry) | [US-2](https://falcon.us-2.crowdstrike.com/documentation/category/c3d64B8e/falcon-foundry) | [EU](https://falcon.eu-1.crowdstrike.com/documentation/category/c3d64B8e/falcon-foundry)
 - Foundry learning resources: [US-1](https://falcon.crowdstrike.com/foundry/learn) | [US-2](https://falcon.us-2.crowdstrike.com/foundry/learn) | [EU](https://falcon.eu-1.crowdstrike.com/foundry/learn)
 
-## Pre-Commit Hooks
+## Secret Scanning
 
-This repository uses git hooks to scan for hardcoded secrets before commits.
+This repository enforces secret scanning on every commit using [gitleaks](https://github.com/gitleaks/gitleaks). Commits are **blocked** if gitleaks is not installed.
 
 ### Setup
 
 ```bash
-# Run once after cloning
+# Install gitleaks (required)
+brew install gitleaks
+
+# Configure git hooks (run once after cloning)
 ./scripts/setup-hooks.sh
 ```
 
-On `git commit`, the hook checks for available tools:
-- **gitleaks installed:** scans staged changes and blocks commit if secrets are detected.
-- **Neither installed:** prints install instructions and allows the commit. CI still catches secrets on push.
+### How it works
 
-**Install gitleaks** (recommended):
-```bash
-brew install gitleaks
-```
+| Scenario | Result |
+|----------|--------|
+| Secret detected in staged files | Commit blocked |
+| No secrets found | Commit allowed |
+| gitleaks not installed | Commit blocked |
+
+CI also runs gitleaks on every push and pull request as an additional safety net.
 
 **Bypass (false positives only):**
 ```bash
