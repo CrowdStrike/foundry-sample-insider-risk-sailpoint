@@ -11,9 +11,11 @@ if command -v gitleaks &>/dev/null; then
     echo "✅ gitleaks is installed. Secrets will be scanned on commit."
 else
     echo ""
-    echo "⚠️  gitleaks is not installed. Install it for local secret scanning:"
+    echo "❌ gitleaks is required. Commits will be blocked without it."
+    echo ""
+    echo "Install gitleaks:"
     echo ""
     echo "  brew install gitleaks"
     echo ""
-    echo "Without it, CI will still catch secrets on push."
+    exit 1
 fi
