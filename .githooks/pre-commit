@@ -1,0 +1,19 @@
+#!/usr/bin/env bash
+
+if command -v pre-commit &>/dev/null; then
+    exec pre-commit run --hook-stage pre-commit
+else
+    echo ""
+    echo "⚠️  pre-commit is not installed."
+    echo ""
+    echo "Install it to enable local secret scanning before commits:"
+    echo ""
+    echo "  pip install pre-commit   # OR: brew install pre-commit"
+    echo ""
+    echo "Then run:"
+    echo ""
+    echo "  pre-commit install"
+    echo ""
+    echo "Continuing without secret scan. CI will still catch secrets on push."
+    echo ""
+fi

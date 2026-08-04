@@ -184,15 +184,17 @@ This repository uses [pre-commit](https://pre-commit.com/) hooks to prevent acci
 ### Setup
 
 ```bash
-# Install pre-commit
-pip install pre-commit
-# OR: brew install pre-commit
+# 1. Configure git hooks (required — run once after cloning)
+./scripts/setup-hooks.sh
 
-# Install hooks for this repo
+# 2. Install pre-commit (recommended — enables local secret scanning)
+pip install pre-commit   # OR: brew install pre-commit
 pre-commit install
 ```
 
-Hooks run automatically on `git commit`. If a secret is detected, the commit is blocked with details about the finding.
+On `git commit`, the hook checks if pre-commit is installed:
+- **Installed:** runs gitleaks secret scanning. Blocks commit if secrets are detected.
+- **Not installed:** prints install instructions and allows the commit. CI still catches secrets on push.
 
 **Bypass (false positives only):**
 ```bash
