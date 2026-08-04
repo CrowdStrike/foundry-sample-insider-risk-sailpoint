@@ -2,17 +2,17 @@
 
 if command -v pre-commit &>/dev/null; then
     exec pre-commit run --hook-stage pre-commit
+elif command -v gitleaks &>/dev/null; then
+    echo "ℹ️  pre-commit not installed. Running gitleaks directly..."
+    echo ""
+    exec gitleaks protect --staged --verbose --redact
 else
     echo ""
-    echo "⚠️  pre-commit is not installed."
+    echo "⚠️  Neither pre-commit nor gitleaks is installed."
     echo ""
-    echo "Install it to enable local secret scanning before commits:"
+    echo "Install one of them to enable local secret scanning:"
     echo ""
-    echo "  pip install pre-commit   # OR: brew install pre-commit"
-    echo ""
-    echo "Then run:"
-    echo ""
-    echo "  pre-commit install"
+    echo "  brew install pre-commit   # OR: brew install gitleaks"
     echo ""
     echo "Continuing without secret scan. CI will still catch secrets on push."
     echo ""
