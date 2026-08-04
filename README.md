@@ -135,6 +135,28 @@ Next, go to **Foundry** > **App catalog**, find your app, and install. During ap
 > [Refer Active Directory Configuration section to create Active Directory group](#active-directory-configuration)
 
 
+## Pre-Commit Hooks
+
+This repository uses [pre-commit](https://pre-commit.com/) hooks to prevent accidental secret commits.
+
+### Setup
+
+```bash
+# Install pre-commit
+pip install pre-commit
+# OR: brew install pre-commit
+
+# Install hooks for this repo
+pre-commit install
+```
+
+Hooks run automatically on `git commit`. If a secret is detected, the commit is blocked with details about the finding.
+
+**Bypass (false positives only):**
+```bash
+git commit --no-verify
+```
+
 ## About this sample app
 
 ### Foundry capabilities used
