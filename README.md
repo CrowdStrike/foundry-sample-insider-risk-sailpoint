@@ -77,6 +77,13 @@ git clone https://github.com/CrowdStrike/foundry-sample-insider-risk-sailpoint
 cd foundry-sample-insider-risk-sailpoint
 ```
 
+Set up git hooks for secret scanning (requires [gitleaks](https://github.com/gitleaks/gitleaks)):
+
+```shell
+brew install gitleaks   # if not already installed
+./scripts/setup-hooks.sh
+```
+
 Log in to Foundry:
 
 ```shell
