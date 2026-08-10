@@ -1,6 +1,5 @@
 name: Add SailPoint leavers data to IDP and AD group
 description: Add SailPoint leavers data to IDP watchlist and AD group
-# secret: 5etwsgkyvznswysnmmqa0kupfve46gqugvon6q0sgqjkz27yjqew085sb4wmdl1dppkvxkao8vr2g8s3e5cmir358o9dwms3nw
 parameters:
     actions:
         configuration:
