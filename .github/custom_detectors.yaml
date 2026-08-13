@@ -1,0 +1,301 @@
+detectors:
+  - name: CrowdStrike Client ID
+    keywords:
+      - client_id
+      - client-id
+      - clientid
+      - clientId
+      - clientID
+      - cs_client_id
+      - cs-client-id
+      - falcon_client_id
+      - falcon-client-id
+      - falcon_api_client_id
+      - falcon-api-client-id
+    regex:
+      secret: "(?i)(?:cs[_-]?|falcon[_-]?(?:api[_-]?)?)?client[_-]?id\\s*[=:]\\s*[\"']?([0-9a-f]{32})[\"']?"
+    exclude_words:
+      - "00000000000000000000000000000000"
+
+  - name: CrowdStrike Client Secret
+    keywords:
+      - client_secret
+      - clientsecret
+      - clientSecret
+      - client-secret
+      - cs_client_secret
+      - cs-client-secret
+      - falcon_client_secret
+      - falcon_api_secret
+      - falcon-client-secret
+      - falcon-api-secret
+    regex:
+      secret: "(?i)(?:cs[_-]?|falcon[_-]?(?:api[_-]?)?)?client[_-]?secret\\s*[=:]\\s*[\"']?([0-9a-zA-Z]{40})[\"']?"
+    exclude_words:
+      - "0000000000000000000000000000000000000000"
+      - "ABCDEFGHtwfk6c0U4l72EsnjXxS1mH9123456789"
+
+  - name: Hardcoded Password (quoted)
+    keywords:
+      - password
+      - passwd
+      - pwd
+      - pass_word
+      - db_password
+      - db_pass
+      - database_password
+      - admin_password
+      - root_password
+      - user_password
+    regex:
+      secret: "(?i)(?:password|passwd|pwd|pass_?word|db_pass(?:word)?|database_password|admin_password|root_password|user_password)\\s*[=:]\\s*[\"']([^\"']{8,})[\"']"
+    exclude_words:
+      - "password"
+      - "changeme"
+      - "placeholder"
+      - "xxxxxxxx"
+      - "********"
+
+  - name: Hardcoded Password (unquoted)
+    keywords:
+      - password
+      - passwd
+      - pwd
+    regex:
+      secret: "(?i)(?:password|passwd|pwd)\\s*[=:]\\s*([^\\s\"']{8,})"
+    exclude_words:
+      - "password"
+      - "changeme"
+      - "placeholder"
+      - "xxxxxxxx"
+
+  - name: Generic Secret (quoted)
+    keywords:
+      - secret
+      - token
+      - api_key
+      - apikey
+      - api-key
+      - apiKey
+      - access_key
+      - accesskey
+      - accessKey
+      - access_token
+      - accesstoken
+      - accessToken
+      - auth_token
+      - authtoken
+      - authToken
+      - auth_key
+      - private_key
+      - privatekey
+      - privateKey
+      - signing_key
+      - signingkey
+      - signingKey
+      - encryption_key
+      - encryptionkey
+      - encryptionKey
+      - client_id
+      - clientid
+      - clientId
+      - clientID
+      - client-id
+      - client_secret
+      - clientsecret
+      - clientSecret
+      - client-secret
+      - secret_key
+      - secretkey
+      - secretKey
+      - secret-key
+      - bearer
+      - credentials
+      - conn_string
+      - connection_string
+      - connectionstring
+      - connectionString
+    regex:
+      secret: "(?i)(?:secret|token|api[_-]?key|access[_-]?(?:key|token)|auth[_-]?(?:token|key)|private[_-]?key|signing[_-]?key|encryption[_-]?key|client[_-]?(?:id|secret)|secret[_-]?key|bearer|credentials|conn(?:ection)?[_-]?string)\\s*[=:]\\s*[\"']([A-Za-z0-9+/=_\\-.]{20,})[\"']"
+    exclude_words:
+      - "your_secret_key_here"
+      - "your_token_here"
+      - "replace_with_your_key"
+      - "PLACEHOLDER"
+      - "your-client-id-here"
+      - "your-client-secret-here"
+      - "xxxxxxxxxxxxxxxxxxxx"
+      - "TODO_REPLACE_THIS_VALUE"
+
+  - name: Generic Secret (unquoted)
+    keywords:
+      - secret
+      - token
+      - api_key
+      - apikey
+      - api-key
+      - apiKey
+      - access_key
+      - accesskey
+      - accessKey
+      - access_token
+      - accesstoken
+      - accessToken
+      - auth_token
+      - authtoken
+      - authToken
+      - auth_key
+      - private_key
+      - privatekey
+      - privateKey
+      - signing_key
+      - signingkey
+      - signingKey
+      - encryption_key
+      - encryptionkey
+      - encryptionKey
+      - client_id
+      - clientid
+      - clientId
+      - clientID
+      - client-id
+      - client_secret
+      - clientsecret
+      - clientSecret
+      - client-secret
+      - secret_key
+      - secretkey
+      - secretKey
+      - secret-key
+      - bearer
+      - credentials
+      - conn_string
+      - connection_string
+      - connectionstring
+      - connectionString
+    regex:
+      secret: "(?i)(?:secret|token|api[_-]?key|access[_-]?(?:key|token)|auth[_-]?(?:token|key)|private[_-]?key|signing[_-]?key|encryption[_-]?key|client[_-]?(?:id|secret)|secret[_-]?key|bearer|credentials|conn(?:ection)?[_-]?string)\\s*[=:]\\s*([A-Za-z0-9+/=_\\-.]{20,})"
+    exclude_words:
+      - "your_secret_key_here"
+      - "your_token_here"
+      - "replace_with_your_key"
+      - "PLACEHOLDER"
+      - "your-client-id-here"
+      - "your-client-secret-here"
+      - "xxxxxxxxxxxxxxxxxxxx"
+      - "TODO_REPLACE_THIS_VALUE"
+
+  - name: Generic Secret (camelCase)
+    keywords:
+      - clientId
+      - clientID
+      - clientSecret
+      - apiKey
+      - accessKey
+      - accessToken
+      - authToken
+      - secretKey
+      - privateKey
+      - signingKey
+      - encryptionKey
+      - bearerToken
+      - connectionString
+    regex:
+      secret: "(?:clientId|clientID|clientSecret|apiKey|accessKey|accessToken|authToken|secretKey|privateKey|signingKey|encryptionKey|bearerToken|connectionString)\\s*[=:]\\s*[\"']?([A-Za-z0-9+/=_\\-.]{20,})[\"']?"
+    exclude_words:
+      - "your_secret_key_here"
+      - "your_token_here"
+      - "PLACEHOLDER"
+      - "xxxxxxxxxxxxxxxxxxxx"
+      - "TODO_REPLACE_THIS_VALUE"
+
+  - name: Connection String with Credentials
+    keywords:
+      - "://"
+      - "mongodb+srv"
+      - "postgres://"
+      - "mysql://"
+      - "redis://"
+      - "amqp://"
+      - "jdbc:"
+    regex:
+      secret: "(?i)(?:mongodb(?:\\+srv)?|postgres(?:ql)?|mysql|redis|amqp|jdbc:[a-z]+)://[^:/\\s]+:(.{8,})@[a-zA-Z0-9.-]+"
+    exclude_words:
+      - "password"
+      - "changeme"
+      - "localhost"
+
+  - name: Base64 Encoded Credential
+    keywords:
+      - client_id
+      - clientid
+      - clientId
+      - clientID
+      - client_secret
+      - clientsecret
+      - clientSecret
+      - secret
+      - token
+      - credentials
+      - authorization
+    regex:
+      secret: "(?i)(?:client[_-]?(?:id|secret)|secret|token|credentials|authorization)\\s*[=:]\\s*[\"']?([A-Za-z0-9+/]{43,}={0,2})[\"']?"
+    exclude_words:
+      - "AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA="
+
+  - name: Private Key (including comments)
+    keywords:
+      - "PRIVATE KEY"
+    regex:
+      secret: "(-----BEGIN [A-Z ]*PRIVATE KEY-----)"
+
+  - name: AWS Access Key ID
+    keywords:
+      - AKIA
+    regex:
+      secret: "(AKIA[0-9A-Z]{16})"
+
+  - name: AWS Secret Access Key
+    keywords:
+      - aws_secret_access_key
+      - secret_access_key
+      - aws_secret
+    regex:
+      secret: "(?i)(?:aws[_-]?secret[_-]?access[_-]?key|secret[_-]?access[_-]?key|aws[_-]?secret)\\s*[=:]\\s*[\"']?([A-Za-z0-9/+=]{40})[\"']?"
+
+  - name: Azure Storage Account Key
+    keywords:
+      - AccountKey
+      - azure_storage
+      - DefaultEndpointsProtocol
+    regex:
+      secret: "AccountKey=([A-Za-z0-9+/=]{44,88})"
+
+  - name: Snowflake Connection String
+    keywords:
+      - snowflake://
+      - snowflake
+    regex:
+      secret: "snowflake://[^:/\\s]+:([^@]{8,})@[a-zA-Z0-9.-]+"
+
+  - name: PagerDuty API Key
+    keywords:
+      - pagerduty
+      - pagerduty_api_key
+    regex:
+      secret: "(?i)pagerduty[_-]?(?:api[_-]?)?key\\s*[=:]\\s*[\"']?([A-Za-z0-9+]{16,})[\"']?"
+
+  - name: Twilio Account SID
+    keywords:
+      - twilio
+      - account_sid
+      - AC
+    regex:
+      secret: "(AC[0-9a-f]{32})"
+
+  - name: Twilio Auth Token
+    keywords:
+      - twilio
+      - auth_token
+    regex:
+      secret: "(?i)twilio[_-]?auth[_-]?token\\s*[=:]\\s*[\"']?([0-9a-f]{32})[\"']?"

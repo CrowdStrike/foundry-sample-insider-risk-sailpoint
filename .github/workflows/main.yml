@@ -6,15 +6,39 @@ permissions:
 
 jobs:
   secret-scan:
-    name: Detect hardcoded secrets
+    name: Detect secrets
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@8e8c483db84b4bee98b60c0593521ed34d9990e8  # v6.0.1
         with:
           fetch-depth: 0
-      - uses: gitleaks/gitleaks-action@e0c47f4f8be36e29cdc102c57e68cb5cbf0e8d1e  # v3.0.0
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      - name: Run TruffleHog
+        id: trufflehog
+        uses: trufflesecurity/trufflehog@6f3c981e7b77f235fd2702dd74af25fc4b72bf11  # v3.96.0
+        continue-on-error: true
+        with:
+          # enable in case want to run scan on full git commit history
+          # base: ""
+          # head: HEAD
+          extra_args: --config=.github/custom_detectors.yaml --no-verification --results=verified,unknown,unverified --json
+      - name: Summary with commit hashes
+        if: steps.trufflehog.outcome == 'failure'
+        run: |
+          echo "## Secret Scan Results" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "| # | Detector | File | Line | Commit |" >> $GITHUB_STEP_SUMMARY
+          echo "|---|----------|------|------|--------|" >> $GITHUB_STEP_SUMMARY
+          docker run --rm -v "$PWD":/tmp -w /tmp \
+            ghcr.io/trufflesecurity/trufflehog:latest \
+            git file:///tmp/ --since-commit "" --branch HEAD \
+            --config=.github/custom_detectors.yaml --no-verification \
+            --results=verified,unknown,unverified --json --no-update 2>/dev/null | \
+          jq -r 'select(.SourceMetadata) | "\(.DetectorName) | \(.SourceMetadata.Data.Git.file) | L\(.SourceMetadata.Data.Git.line) | \(.SourceMetadata.Data.Git.commit)"' | sort -u | awk '{printf "| %d | %s |\n", NR, $0}' >> $GITHUB_STEP_SUMMARY || true
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "Secrets detected - failing build." >> $GITHUB_STEP_SUMMARY
+      - name: Fail if secrets found
+        if: steps.trufflehog.outcome == 'failure'
+        run: exit 1
 
   test-functions:
     name: Test identity-context
