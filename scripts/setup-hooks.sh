@@ -7,15 +7,15 @@ REPO_ROOT="$(git rev-parse --show-toplevel)"
 git config core.hooksPath "$REPO_ROOT/.githooks"
 echo "✅ Git hooks configured. Using .githooks/ directory."
 
-if command -v gitleaks &>/dev/null; then
-    echo "✅ gitleaks is installed. Secrets will be scanned on commit."
+if command -v betterleaks &>/dev/null; then
+    echo "✅ betterleaks is installed. Secrets will be scanned on commit."
 else
     echo ""
-    echo "❌ gitleaks is required. Commits will be blocked without it."
+    echo "❌ betterleaks is required. Commits will be blocked without it."
     echo ""
-    echo "Install gitleaks:"
+    echo "Install betterleaks:"
     echo ""
-    echo "  brew install gitleaks"
+    echo "  brew install betterleaks"
     echo ""
     exit 1
 fi

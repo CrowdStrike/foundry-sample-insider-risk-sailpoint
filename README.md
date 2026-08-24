@@ -30,7 +30,7 @@ This app illustrates the following functionality amongst other components:
 ## Prerequisites
 
 * The Foundry CLI (instructions below)
-* [gitleaks](https://github.com/gitleaks/gitleaks) for secret scanning (`brew install gitleaks`)
+* [betterleaks](https://github.com/CrowdStrike/betterleaks) for secret scanning (`brew install betterleaks`)
 * SailPoint API Credential
 * Active Directory Configuration
 
@@ -81,7 +81,7 @@ cd foundry-sample-insider-risk-sailpoint
 Set up secret scanning (required — commits are blocked without it):
 
 ```shell
-brew install gitleaks
+brew install betterleaks
 ./scripts/setup-hooks.sh
 ```
 
@@ -187,17 +187,26 @@ Cloud-only users (those without Active Directory accounts) are not supported in 
 
 ## Secret Scanning
 
-This repository enforces secret scanning on every commit using [gitleaks](https://github.com/gitleaks/gitleaks). Commits are **blocked** if gitleaks is not installed.
+This repository enforces secret scanning on every commit using [betterleaks](https://github.com/CrowdStrike/betterleaks). Commits are **blocked** if betterleaks is not installed.
 
 ### Setup
 
 ```bash
-# Install gitleaks (required)
-brew install gitleaks
+# Install betterleaks (required)
+brew install betterleaks
 
 # Configure git hooks (run once after cloning)
 ./scripts/setup-hooks.sh
 ```
+
+Alternatively, if you use the [pre-commit](https://pre-commit.com/) framework:
+
+```bash
+pip install pre-commit
+pre-commit install
+```
+
+This uses the `.pre-commit-config.yaml` which runs betterleaks with the project's custom detectors.
 
 ### How it works
 
@@ -205,9 +214,9 @@ brew install gitleaks
 |----------|--------|
 | Secret detected in staged files | Commit blocked |
 | No secrets found | Commit allowed |
-| gitleaks not installed | Commit blocked |
+| betterleaks not installed | Commit blocked |
 
-CI also runs gitleaks on every push and pull request as an additional safety net.
+CI also runs secret scanning on every push and pull request as an additional safety net.
 
 **Bypass (false positives only):**
 ```bash
