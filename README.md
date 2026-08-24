@@ -30,7 +30,7 @@ This app illustrates the following functionality amongst other components:
 ## Prerequisites
 
 * The Foundry CLI (instructions below)
-* [betterleaks](https://github.com/CrowdStrike/betterleaks) for secret scanning (`brew install betterleaks`)
+* [pre-commit](https://pre-commit.com/) for secret scanning (`pip install pre-commit`)
 * SailPoint API Credential
 * Active Directory Configuration
 
@@ -81,7 +81,7 @@ cd foundry-sample-insider-risk-sailpoint
 Set up secret scanning (required — commits are blocked without it):
 
 ```shell
-brew install betterleaks
+pip install pre-commit
 ./scripts/setup-hooks.sh
 ```
 
@@ -187,26 +187,17 @@ Cloud-only users (those without Active Directory accounts) are not supported in 
 
 ## Secret Scanning
 
-This repository enforces secret scanning on every commit using [betterleaks](https://github.com/CrowdStrike/betterleaks). Commits are **blocked** if betterleaks is not installed.
+This repository enforces secret scanning on every commit using the [pre-commit](https://pre-commit.com/) framework. Commits are **blocked** if pre-commit is not installed.
 
 ### Setup
 
 ```bash
-# Install betterleaks (required)
-brew install betterleaks
+# Install pre-commit (required)
+pip install pre-commit
 
 # Configure git hooks (run once after cloning)
 ./scripts/setup-hooks.sh
 ```
-
-Alternatively, if you use the [pre-commit](https://pre-commit.com/) framework:
-
-```bash
-pip install pre-commit
-pre-commit install
-```
-
-This uses the `.pre-commit-config.yaml` which runs betterleaks with the project's custom detectors.
 
 ### How it works
 
@@ -214,9 +205,7 @@ This uses the `.pre-commit-config.yaml` which runs betterleaks with the project'
 |----------|--------|
 | Secret detected in staged files | Commit blocked |
 | No secrets found | Commit allowed |
-| betterleaks not installed | Commit blocked |
-
-CI also runs secret scanning on every push and pull request as an additional safety net.
+| pre-commit not installed | Commit blocked |
 
 **Bypass (false positives only):**
 ```bash
