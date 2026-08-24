@@ -30,6 +30,7 @@ This app illustrates the following functionality amongst other components:
 ## Prerequisites
 
 * The Foundry CLI (instructions below)
+* [betterleaks](https://github.com/CrowdStrike/betterleaks) for secret scanning (`brew install betterleaks`)
 * SailPoint API Credential
 * Active Directory Configuration
 
@@ -75,6 +76,13 @@ Clone this sample to your local system, or [download as a zip file](https://gith
 ```shell
 git clone https://github.com/CrowdStrike/foundry-sample-insider-risk-sailpoint
 cd foundry-sample-insider-risk-sailpoint
+```
+
+Set up secret scanning (required — commits are blocked without it):
+
+```shell
+brew install betterleaks
+./scripts/setup-hooks.sh
 ```
 
 Log in to Foundry:
@@ -176,6 +184,44 @@ Cloud-only users (those without Active Directory accounts) are not supported in 
 
 - Foundry documentation: [US-1](https://falcon.crowdstrike.com/documentation/category/c3d64B8e/falcon-foundry) | [US-2](https://falcon.us-2.crowdstrike.com/documentation/category/c3d64B8e/falcon-foundry) | [EU](https://falcon.eu-1.crowdstrike.com/documentation/category/c3d64B8e/falcon-foundry)
 - Foundry learning resources: [US-1](https://falcon.crowdstrike.com/foundry/learn) | [US-2](https://falcon.us-2.crowdstrike.com/foundry/learn) | [EU](https://falcon.eu-1.crowdstrike.com/foundry/learn)
+
+## Secret Scanning
+
+This repository enforces secret scanning on every commit using [betterleaks](https://github.com/CrowdStrike/betterleaks). Commits are **blocked** if betterleaks is not installed.
+
+### Setup
+
+```bash
+# Install betterleaks (required)
+brew install betterleaks
+
+# Configure git hooks (run once after cloning)
+./scripts/setup-hooks.sh
+```
+
+Alternatively, if you use the [pre-commit](https://pre-commit.com/) framework:
+
+```bash
+pip install pre-commit
+pre-commit install
+```
+
+This uses the `.pre-commit-config.yaml` which runs betterleaks with the project's custom detectors.
+
+### How it works
+
+| Scenario | Result |
+|----------|--------|
+| Secret detected in staged files | Commit blocked |
+| No secrets found | Commit allowed |
+| betterleaks not installed | Commit blocked |
+
+CI also runs secret scanning on every push and pull request as an additional safety net.
+
+**Bypass (false positives only):**
+```bash
+git commit --no-verify
+```
 
 ---
 

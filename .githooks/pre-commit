@@ -1,0 +1,16 @@
+#!/usr/bin/env bash
+
+if command -v pre-commit &>/dev/null; then
+    exec pre-commit run --hook-stage pre-commit
+elif command -v betterleaks &>/dev/null; then
+    exec betterleaks git --staged --verbose --redact
+else
+    echo ""
+    echo "❌ Commit blocked: no secret scanning tool installed."
+    echo ""
+    echo "Install betterleaks to enable commits:"
+    echo ""
+    echo "  brew install betterleaks"
+    echo ""
+    exit 1
+fi
