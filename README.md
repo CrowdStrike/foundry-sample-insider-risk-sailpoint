@@ -30,7 +30,7 @@ This app illustrates the following functionality amongst other components:
 ## Prerequisites
 
 * The Foundry CLI (instructions below)
-* [pre-commit](https://pre-commit.com/) for secret scanning (`pip install pre-commit`)
+* [pre-commit](https://pre-commit.com/) for secret scanning
 * SailPoint API Credential
 * Active Directory Configuration
 
@@ -82,7 +82,7 @@ Set up secret scanning (required — commits are blocked without it):
 
 ```shell
 pip install pre-commit
-./scripts/setup-hooks.sh
+pre-commit install
 ```
 
 Log in to Foundry:
@@ -187,16 +187,16 @@ Cloud-only users (those without Active Directory accounts) are not supported in 
 
 ## Secret Scanning
 
-This repository enforces secret scanning on every commit using the [pre-commit](https://pre-commit.com/) framework. Commits are **blocked** if pre-commit is not installed.
+This repository enforces secret scanning on every commit using [betterleaks](https://github.com/betterleaks/betterleaks) via the [pre-commit](https://pre-commit.com/) framework.
 
 ### Setup
 
 ```bash
-# Install pre-commit (required)
-pip install pre-commit
+# Install pre-commit (run once)
+brew install pre-commit
 
-# Configure git hooks (run once after cloning)
-./scripts/setup-hooks.sh
+# Register the git hook (run once after cloning)
+pre-commit install
 ```
 
 ### How it works
@@ -205,7 +205,9 @@ pip install pre-commit
 |----------|--------|
 | Secret detected in staged files | Commit blocked |
 | No secrets found | Commit allowed |
-| pre-commit not installed | Commit blocked |
+| pre-commit not installed | No hook runs (secrets not scanned) |
+
+CI also runs TruffleHog on every push and pull request as an additional safety net.
 
 **Bypass (false positives only):**
 ```bash

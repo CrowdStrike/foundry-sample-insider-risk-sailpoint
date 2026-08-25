@@ -1,10 +1,5 @@
 repos:
-  - repo: https://github.com/CrowdStrike/betterleaks
-    rev: v1.8.1
+  - repo: https://github.com/betterleaks/betterleaks
+    rev: 5eab48332cc48565864514e3bc6de89df091a7c4  # v1.8.1
     hooks:
       - id: betterleaks
-        args:
-          - git
-          - --staged
-          - --verbose
-          - --redact
