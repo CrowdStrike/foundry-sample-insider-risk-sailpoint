@@ -78,7 +78,7 @@ git clone https://github.com/CrowdStrike/foundry-sample-insider-risk-sailpoint
 cd foundry-sample-insider-risk-sailpoint
 ```
 
-Set up secret scanning (required — commits are blocked without it):
+Set up secret scanning
 
 ```shell
 pip install pre-commit
@@ -187,7 +187,7 @@ Cloud-only users (those without Active Directory accounts) are not supported in 
 
 ## Secret Scanning
 
-This repository enforces secret scanning on every commit using [betterleaks](https://github.com/betterleaks/betterleaks) via the [pre-commit](https://pre-commit.com/) framework.
+This repository enforces secret scanning on every commit via the [pre-commit](https://pre-commit.com/) framework.
 
 ### Setup
 
@@ -206,8 +206,6 @@ pre-commit install
 | Secret detected in staged files | Commit blocked |
 | No secrets found | Commit allowed |
 | pre-commit not installed | No hook runs (secrets not scanned) |
-
-CI also runs TruffleHog on every push and pull request as an additional safety net.
 
 **Bypass (false positives only):**
 ```bash
