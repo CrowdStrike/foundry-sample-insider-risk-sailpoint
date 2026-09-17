@@ -187,7 +187,7 @@ Cloud-only users (those without Active Directory accounts) are not supported in 
 
 ## Secret Scanning
 
-This repository enforces secret scanning on every commit via the [pre-commit](https://pre-commit.com/) framework.
+This repository enforces secret scanning on every commit via the [pre-commit](https://pre-commit.com/) framework using [betterleaks](https://github.com/betterleaks/betterleaks), a tool that detects secrets and credentials in source code before they are committed.
 
 ### Setup
 
@@ -200,6 +200,8 @@ pre-commit install
 ```
 
 ### How it works
+
+On each `git commit`, betterleaks scans all staged files for secrets and credentials.
 
 | Scenario | Result |
 |----------|--------|
