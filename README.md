@@ -30,6 +30,7 @@ This app illustrates the following functionality amongst other components:
 ## Prerequisites
 
 * The Foundry CLI (instructions below)
+* Python 3.14+ (needed if modifying the app's functions). See [Python For Beginners](https://www.python.org/about/gettingstarted/) for installation instructions.
 * [pre-commit](https://pre-commit.com/) for secret scanning
 * SailPoint API Credential
 * Active Directory Configuration
